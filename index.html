@@ -1,0 +1,1578 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Michał Ćwikła — Sprzedaż · Procesy · Automatyzacja</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+<style>
+  :root {
+    --bg: #080808;
+    --bg2: #0f0f0f;
+    --bg3: #161616;
+    --white: #f5f5f5;
+    --gray: #888;
+    --gray2: #444;
+    --accent: #e8e0d0;
+    --gold: #c9a96e;
+    --gold2: #a07840;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; font-size: 16px; }
+
+  body {
+    background: var(--bg);
+    color: var(--white);
+    font-family: 'Space Grotesk', sans-serif;
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* CUSTOM CURSOR */
+  .cursor {
+    position: fixed;
+    width: 12px; height: 12px;
+    background: var(--white);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9999;
+    transform: translate(-50%, -50%);
+    transition: width .2s, height .2s, background .2s;
+    mix-blend-mode: difference;
+  }
+  .cursor-follower {
+    position: fixed;
+    width: 40px; height: 40px;
+    border: 1px solid rgba(255,255,255,.3);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9998;
+    transform: translate(-50%, -50%);
+    transition: transform .12s ease-out, width .3s, height .3s, border-color .3s;
+  }
+  body:hover .cursor { opacity: 1; }
+  a:hover ~ .cursor, button:hover ~ .cursor { width: 20px; height: 20px; }
+
+  /* CANVAS BG */
+  #bg-canvas {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    padding: 24px 48px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background .4s, backdrop-filter .4s;
+  }
+  nav.scrolled {
+    background: rgba(8,8,8,.85);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(255,255,255,.05);
+  }
+  .nav-logo {
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--white);
+    text-decoration: none;
+  }
+  .nav-links {
+    display: flex;
+    gap: 36px;
+    list-style: none;
+  }
+  .nav-links a {
+    font-size: .75rem;
+    font-weight: 500;
+    letter-spacing: .15em;
+    text-transform: uppercase;
+    color: var(--gray);
+    text-decoration: none;
+    transition: color .3s;
+    position: relative;
+  }
+  .nav-links a::after {
+    content: '';
+    position: absolute;
+    bottom: -4px; left: 0;
+    width: 0; height: 1px;
+    background: var(--gold);
+    transition: width .3s;
+  }
+  .nav-links a:hover { color: var(--white); }
+  .nav-links a:hover::after { width: 100%; }
+
+  /* HERO */
+  #hero {
+    position: relative;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 0 10vw;
+    z-index: 1;
+    overflow: hidden;
+  }
+  .hero-tag {
+    font-size: .7rem;
+    font-weight: 500;
+    letter-spacing: .3em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 28px;
+    opacity: 0;
+  }
+  .hero-name {
+    font-size: clamp(3.5rem, 9vw, 8rem);
+    font-weight: 700;
+    line-height: .95;
+    letter-spacing: -.03em;
+    overflow: hidden;
+    margin-bottom: 24px;
+  }
+  .hero-name .line {
+    display: block;
+    overflow: hidden;
+  }
+  .hero-name .word {
+    display: inline-block;
+    transform: translateY(110%);
+  }
+  .hero-sub {
+    font-size: clamp(.9rem, 1.5vw, 1.1rem);
+    color: var(--gray);
+    max-width: 480px;
+    line-height: 1.7;
+    opacity: 0;
+    transform: translateY(20px);
+    margin-bottom: 48px;
+  }
+  .hero-btns {
+    display: flex;
+    gap: 16px;
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  .btn-primary {
+    padding: 14px 32px;
+    background: var(--white);
+    color: var(--bg);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: .8rem;
+    font-weight: 600;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    border: none;
+    cursor: none;
+    text-decoration: none;
+    display: inline-block;
+    transition: background .3s, transform .3s;
+    position: relative;
+    overflow: hidden;
+  }
+  .btn-primary::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--gold);
+    transform: translateX(-101%);
+    transition: transform .4s cubic-bezier(.77,0,.18,1);
+  }
+  .btn-primary:hover::after { transform: translateX(0); }
+  .btn-primary span { position: relative; z-index: 1; }
+  .btn-outline {
+    padding: 14px 32px;
+    background: transparent;
+    color: var(--white);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: .8rem;
+    font-weight: 600;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    border: 1px solid rgba(255,255,255,.2);
+    cursor: none;
+    text-decoration: none;
+    display: inline-block;
+    transition: border-color .3s, color .3s;
+  }
+  .btn-outline:hover { border-color: var(--gold); color: var(--gold); }
+
+  .hero-scroll-hint {
+    position: absolute;
+    bottom: 40px;
+    left: 10vw;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    opacity: 0;
+  }
+  .hero-scroll-hint .line-h {
+    width: 40px;
+    height: 1px;
+    background: var(--gray2);
+    position: relative;
+    overflow: hidden;
+  }
+  .hero-scroll-hint .line-h::after {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%;
+    width: 100%; height: 100%;
+    background: var(--gold);
+    animation: lineMove 2s infinite;
+  }
+  @keyframes lineMove {
+    0% { left: -100%; }
+    100% { left: 100%; }
+  }
+  .hero-scroll-hint span {
+    font-size: .65rem;
+    letter-spacing: .2em;
+    text-transform: uppercase;
+    color: var(--gray2);
+  }
+
+  /* SECTIONS */
+  section {
+    position: relative;
+    z-index: 1;
+  }
+
+  .section-label {
+    font-size: .65rem;
+    font-weight: 600;
+    letter-spacing: .35em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 16px;
+  }
+  .section-title {
+    font-size: clamp(2rem, 4vw, 3.5rem);
+    font-weight: 700;
+    letter-spacing: -.02em;
+    line-height: 1.1;
+  }
+  .divider {
+    width: 40px;
+    height: 1px;
+    background: var(--gold);
+    margin: 32px 0;
+  }
+
+  /* ABOUT */
+  #about {
+    padding: 140px 10vw;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+    align-items: center;
+  }
+  .about-image-wrap {
+    position: relative;
+    aspect-ratio: 3/4;
+    overflow: hidden;
+  }
+  .about-image-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: grayscale(100%);
+    transition: filter .6s;
+    transform: scale(1.05);
+  }
+  .about-image-wrap:hover img { filter: grayscale(60%); }
+  .about-image-frame {
+    position: absolute;
+    top: -16px; right: -16px;
+    width: 100%; height: 100%;
+    border: 1px solid rgba(201,169,110,.2);
+    pointer-events: none;
+    z-index: -1;
+  }
+  .about-text p {
+    font-size: 1rem;
+    color: var(--gray);
+    line-height: 1.85;
+    margin-bottom: 20px;
+  }
+  .about-text p strong { color: var(--white); font-weight: 600; }
+  .about-pillars {
+    margin-top: 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .pillar {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 16px 0;
+    border-bottom: 1px solid rgba(255,255,255,.05);
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  .pillar-icon {
+    width: 4px;
+    height: 4px;
+    background: var(--gold);
+    border-radius: 50%;
+    margin-top: 8px;
+    flex-shrink: 0;
+  }
+  .pillar-text {
+    font-size: .85rem;
+    color: var(--gray);
+    line-height: 1.6;
+  }
+  .pillar-text strong { color: var(--white); }
+
+  /* STATS */
+  .stats-bar {
+    background: var(--bg3);
+    border-top: 1px solid rgba(255,255,255,.04);
+    border-bottom: 1px solid rgba(255,255,255,.04);
+    padding: 60px 10vw;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 40px;
+  }
+  .stat-item { text-align: center; }
+  .stat-num {
+    font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 700;
+    letter-spacing: -.04em;
+    color: var(--white);
+    display: block;
+  }
+  .stat-num span { color: var(--gold); }
+  .stat-label {
+    font-size: .7rem;
+    letter-spacing: .15em;
+    text-transform: uppercase;
+    color: var(--gray);
+    margin-top: 8px;
+    display: block;
+  }
+
+  /* KOMPETENCJE */
+  #kompetencje {
+    padding: 140px 10vw;
+  }
+  .skills-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 60px;
+  }
+  .skills-categories {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 32px;
+    margin-bottom: 60px;
+  }
+  .skill-cat-btn {
+    padding: 8px 20px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: .7rem;
+    font-weight: 500;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    background: transparent;
+    border: 1px solid rgba(255,255,255,.1);
+    color: var(--gray);
+    cursor: none;
+    transition: all .3s;
+  }
+  .skill-cat-btn.active, .skill-cat-btn:hover {
+    background: var(--gold);
+    border-color: var(--gold);
+    color: var(--bg);
+  }
+
+  /* MARQUEE SKILLS */
+  .marquee-wrap {
+    overflow: hidden;
+    mask-image: linear-gradient(90deg, transparent, black 10%, black 90%, transparent);
+    -webkit-mask-image: linear-gradient(90deg, transparent, black 10%, black 90%, transparent);
+    margin-bottom: 80px;
+  }
+  .marquee-track {
+    display: flex;
+    gap: 0;
+    animation: marqueeAnim 40s linear infinite;
+    width: max-content;
+  }
+  .marquee-track.reverse { animation-direction: reverse; }
+  .marquee-item {
+    padding: 20px 40px;
+    border: 1px solid rgba(255,255,255,.06);
+    margin-right: 12px;
+    white-space: nowrap;
+    font-size: .75rem;
+    font-weight: 500;
+    letter-spacing: .1em;
+    color: var(--gray);
+    transition: all .3s;
+    flex-shrink: 0;
+    position: relative;
+  }
+  .marquee-item:hover {
+    border-color: rgba(201,169,110,.4);
+    color: var(--white);
+    background: rgba(201,169,110,.04);
+  }
+  .marquee-item .num {
+    font-size: .6rem;
+    color: var(--gold);
+    margin-right: 10px;
+    opacity: .7;
+  }
+  @keyframes marqueeAnim {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+
+  /* SKILLS GRID */
+  .skills-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: rgba(255,255,255,.04);
+    border: 1px solid rgba(255,255,255,.04);
+  }
+  .skill-card {
+    background: var(--bg);
+    padding: 32px;
+    position: relative;
+    overflow: hidden;
+    transition: background .4s;
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  .skill-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 2px;
+    background: linear-gradient(90deg, var(--gold), transparent);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform .4s cubic-bezier(.77,0,.18,1);
+  }
+  .skill-card:hover { background: var(--bg3); }
+  .skill-card:hover::before { transform: scaleX(1); }
+  .skill-num {
+    font-size: .6rem;
+    font-weight: 700;
+    letter-spacing: .2em;
+    color: var(--gold);
+    opacity: .5;
+    margin-bottom: 12px;
+  }
+  .skill-title {
+    font-size: .9rem;
+    font-weight: 600;
+    color: var(--white);
+    margin-bottom: 10px;
+    line-height: 1.3;
+  }
+  .skill-desc {
+    font-size: .78rem;
+    color: var(--gray);
+    line-height: 1.65;
+  }
+
+  /* WSPOLPRACA */
+  #wspolpraca {
+    padding: 140px 10vw;
+    background: var(--bg2);
+  }
+  .collab-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2px;
+    margin-top: 60px;
+    background: rgba(255,255,255,.04);
+  }
+  .collab-card {
+    background: var(--bg2);
+    padding: 56px 48px;
+    position: relative;
+    overflow: hidden;
+    transition: background .4s;
+  }
+  .collab-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0;
+    width: 0; height: 1px;
+    background: var(--gold);
+    transition: width .5s cubic-bezier(.77,0,.18,1);
+  }
+  .collab-card:hover { background: var(--bg3); }
+  .collab-card:hover::after { width: 100%; }
+  .collab-icon {
+    font-size: 2rem;
+    margin-bottom: 24px;
+    display: block;
+    filter: grayscale(100%);
+    transition: filter .3s;
+  }
+  .collab-card:hover .collab-icon { filter: grayscale(0%); }
+  .collab-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-bottom: 16px;
+    color: var(--white);
+  }
+  .collab-desc {
+    font-size: .85rem;
+    color: var(--gray);
+    line-height: 1.8;
+  }
+
+  /* DOSWIADCZENIE */
+  #doswiadczenie {
+    padding: 140px 10vw;
+  }
+  .timeline {
+    margin-top: 80px;
+    position: relative;
+  }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 140px;
+    top: 0; bottom: 0;
+    width: 1px;
+    background: linear-gradient(to bottom, transparent, rgba(255,255,255,.1) 10%, rgba(255,255,255,.1) 90%, transparent);
+  }
+  .timeline-item {
+    display: grid;
+    grid-template-columns: 140px 1fr;
+    gap: 0 48px;
+    margin-bottom: 64px;
+    position: relative;
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  .timeline-item::before {
+    content: '';
+    position: absolute;
+    left: 136px;
+    top: 8px;
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    background: var(--bg);
+    border: 2px solid var(--gold2);
+    transition: background .3s, border-color .3s, box-shadow .3s;
+  }
+  .timeline-item:hover::before {
+    background: var(--gold);
+    border-color: var(--gold);
+    box-shadow: 0 0 16px rgba(201,169,110,.5);
+  }
+  .timeline-date {
+    text-align: right;
+    padding-right: 0;
+  }
+  .timeline-duration {
+    font-size: .65rem;
+    font-weight: 700;
+    letter-spacing: .15em;
+    text-transform: uppercase;
+    color: var(--gold);
+    display: block;
+    margin-bottom: 4px;
+  }
+  .timeline-period {
+    font-size: .7rem;
+    color: var(--gray2);
+  }
+  .timeline-content {
+    padding-bottom: 32px;
+    border-bottom: 1px solid rgba(255,255,255,.04);
+  }
+  .timeline-company {
+    font-size: .65rem;
+    font-weight: 700;
+    letter-spacing: .2em;
+    text-transform: uppercase;
+    color: var(--gray2);
+    margin-bottom: 6px;
+  }
+  .timeline-role {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--white);
+    margin-bottom: 16px;
+    line-height: 1.2;
+  }
+  .timeline-list {
+    list-style: none;
+  }
+  .timeline-list li {
+    font-size: .83rem;
+    color: var(--gray);
+    line-height: 1.7;
+    padding: 4px 0;
+    padding-left: 16px;
+    position: relative;
+  }
+  .timeline-list li::before {
+    content: '→';
+    position: absolute;
+    left: 0;
+    color: var(--gold);
+    font-size: .7rem;
+  }
+  .timeline-badge {
+    display: inline-block;
+    margin-top: 12px;
+    padding: 4px 12px;
+    font-size: .65rem;
+    font-weight: 600;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    background: rgba(201,169,110,.1);
+    border: 1px solid rgba(201,169,110,.2);
+    color: var(--gold);
+  }
+
+  /* REKOMENDACJE */
+  #rekomendacje {
+    padding: 140px 10vw;
+    background: var(--bg2);
+    overflow: hidden;
+  }
+  .rec-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 80px;
+  }
+  .linkedin-stats {
+    display: flex;
+    gap: 32px;
+  }
+  .lstat {
+    text-align: right;
+  }
+  .lstat-num {
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -.03em;
+    color: var(--white);
+    display: block;
+  }
+  .lstat-label {
+    font-size: .65rem;
+    letter-spacing: .15em;
+    text-transform: uppercase;
+    color: var(--gray);
+    display: block;
+  }
+  .rec-track-wrap {
+    overflow: hidden;
+    mask-image: linear-gradient(90deg, transparent, black 5%, black 95%, transparent);
+    -webkit-mask-image: linear-gradient(90deg, transparent, black 5%, black 95%, transparent);
+  }
+  .rec-track {
+    display: flex;
+    gap: 24px;
+    animation: recSlide 50s linear infinite;
+    width: max-content;
+  }
+  .rec-track:hover { animation-play-state: paused; }
+  @keyframes recSlide {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+  .rec-card {
+    width: 360px;
+    flex-shrink: 0;
+    background: var(--bg3);
+    border: 1px solid rgba(255,255,255,.05);
+    padding: 32px;
+    position: relative;
+    transition: border-color .3s, transform .3s;
+  }
+  .rec-card:hover {
+    border-color: rgba(201,169,110,.2);
+    transform: translateY(-4px);
+  }
+  .rec-quote {
+    font-size: .85rem;
+    color: var(--gray);
+    line-height: 1.75;
+    margin-bottom: 24px;
+    font-style: italic;
+  }
+  .rec-author {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .rec-avatar {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--gold2), var(--gray2));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: .8rem;
+    font-weight: 700;
+    color: var(--white);
+    flex-shrink: 0;
+  }
+  .rec-name {
+    font-size: .85rem;
+    font-weight: 600;
+    color: var(--white);
+  }
+  .rec-title {
+    font-size: .72rem;
+    color: var(--gray);
+  }
+  .rec-stars {
+    position: absolute;
+    top: 24px; right: 24px;
+    color: var(--gold);
+    font-size: .7rem;
+    letter-spacing: 2px;
+  }
+
+  /* KONTAKT */
+  #kontakt {
+    padding: 140px 10vw;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+  }
+  .contact-big {
+    font-size: clamp(2rem, 4vw, 3.5rem);
+    font-weight: 700;
+    letter-spacing: -.03em;
+    line-height: 1.1;
+    margin-bottom: 32px;
+  }
+  .contact-big span { color: var(--gold); }
+  .contact-info {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 40px;
+  }
+  .contact-info-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: .85rem;
+    color: var(--gray);
+  }
+  .contact-info-item .dot {
+    width: 4px; height: 4px;
+    background: var(--gold);
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .contact-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .form-field {
+    position: relative;
+  }
+  .form-field input,
+  .form-field textarea {
+    width: 100%;
+    background: var(--bg2);
+    border: 1px solid rgba(255,255,255,.08);
+    color: var(--white);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: .85rem;
+    padding: 18px 20px;
+    outline: none;
+    transition: border-color .3s;
+    resize: none;
+  }
+  .form-field input:focus,
+  .form-field textarea:focus {
+    border-color: rgba(201,169,110,.4);
+  }
+  .form-field input::placeholder,
+  .form-field textarea::placeholder {
+    color: var(--gray2);
+    font-size: .78rem;
+    letter-spacing: .05em;
+  }
+  .form-field textarea { height: 140px; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .btn-submit {
+    padding: 18px 40px;
+    background: var(--white);
+    color: var(--bg);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: .8rem;
+    font-weight: 700;
+    letter-spacing: .15em;
+    text-transform: uppercase;
+    border: none;
+    cursor: none;
+    transition: background .3s;
+    position: relative;
+    overflow: hidden;
+    align-self: flex-start;
+  }
+  .btn-submit::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--gold);
+    transform: translateX(-101%);
+    transition: transform .4s cubic-bezier(.77,0,.18,1);
+  }
+  .btn-submit:hover::after { transform: translateX(0); }
+  .btn-submit span { position: relative; z-index: 1; }
+
+  /* FOOTER */
+  footer {
+    background: var(--bg);
+    border-top: 1px solid rgba(255,255,255,.04);
+    padding: 40px 10vw;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    z-index: 1;
+  }
+  footer p {
+    font-size: .7rem;
+    color: var(--gray2);
+    letter-spacing: .1em;
+  }
+  .footer-logo {
+    font-size: .85rem;
+    font-weight: 700;
+    letter-spacing: .15em;
+    text-transform: uppercase;
+    color: var(--white);
+  }
+
+  /* REVEAL ANIMATIONS */
+  .reveal { opacity: 0; transform: translateY(30px); }
+  .reveal-left { opacity: 0; transform: translateX(-40px); }
+  .reveal-right { opacity: 0; transform: translateX(40px); }
+
+  /* NOISE OVERLAY */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+    opacity: .025;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  /* HORIZONTAL SCROLL SECTION for skills */
+  .h-scroll-wrap {
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .h-scroll-wrap::-webkit-scrollbar { display: none; }
+
+  /* MOBILE */
+  @media (max-width: 900px) {
+    nav { padding: 20px 24px; }
+    .nav-links { display: none; }
+    #hero { padding: 0 24px; }
+    #about { grid-template-columns: 1fr; padding: 80px 24px; }
+    .about-image-wrap { max-height: 400px; }
+    .stats-bar { grid-template-columns: repeat(2, 1fr); padding: 60px 24px; }
+    #kompetencje, #wspolpraca, #doswiadczenie, #rekomendacje { padding: 80px 24px; }
+    .skills-grid { grid-template-columns: 1fr 1fr; }
+    .collab-grid { grid-template-columns: 1fr; }
+    .timeline::before { left: 80px; }
+    .timeline-item { grid-template-columns: 80px 1fr; gap: 0 24px; }
+    .timeline-item::before { left: 76px; }
+    #kontakt { grid-template-columns: 1fr; padding: 80px 24px; }
+    .form-row { grid-template-columns: 1fr; }
+    footer { flex-direction: column; gap: 16px; text-align: center; padding: 32px 24px; }
+    .rec-header { flex-direction: column; gap: 32px; align-items: flex-start; }
+    .linkedin-stats { flex-wrap: wrap; justify-content: flex-start; }
+    .lstat { text-align: left; }
+  }
+  @media (max-width: 600px) {
+    .skills-grid { grid-template-columns: 1fr; }
+    .hero-btns { flex-direction: column; }
+  }
+
+  /* LOADING SCREEN */
+  #loader {
+    position: fixed;
+    inset: 0;
+    z-index: 9000;
+    background: var(--bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 24px;
+  }
+  .loader-name {
+    font-size: 1.2rem;
+    font-weight: 700;
+    letter-spacing: .3em;
+    text-transform: uppercase;
+    color: var(--white);
+  }
+  .loader-bar-wrap {
+    width: 200px;
+    height: 1px;
+    background: rgba(255,255,255,.1);
+    position: relative;
+    overflow: hidden;
+  }
+  .loader-bar {
+    position: absolute;
+    top: 0; left: 0;
+    height: 100%;
+    background: var(--gold);
+    width: 0;
+    transition: width .05s linear;
+  }
+  .loader-pct {
+    font-size: .65rem;
+    letter-spacing: .2em;
+    color: var(--gray2);
+  }
+</style>
+</head>
+<body>
+
+<!-- LOADER -->
+<div id="loader">
+  <div class="loader-name">Michał Ćwikła</div>
+  <div class="loader-bar-wrap"><div class="loader-bar" id="loader-bar"></div></div>
+  <div class="loader-pct" id="loader-pct">0%</div>
+</div>
+
+<!-- CURSOR -->
+<div class="cursor" id="cursor"></div>
+<div class="cursor-follower" id="cursor-follower"></div>
+
+<!-- CANVAS -->
+<canvas id="bg-canvas"></canvas>
+
+<!-- NAV -->
+<nav id="nav">
+  <a href="#hero" class="nav-logo">MC</a>
+  <ul class="nav-links">
+    <li><a href="#about">O mnie</a></li>
+    <li><a href="#kompetencje">Kompetencje</a></li>
+    <li><a href="#wspolpraca">Współpraca</a></li>
+    <li><a href="#doswiadczenie">Doświadczenie</a></li>
+    <li><a href="#rekomendacje">Rekomendacje</a></li>
+    <li><a href="#kontakt">Kontakt</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-tag">Sprzedaż · Procesy · Automatyzacja</div>
+  <h1 class="hero-name">
+    <span class="line"><span class="word">Michał</span></span>
+    <span class="line"><span class="word">Ćwikła</span></span>
+  </h1>
+  <p class="hero-sub">Łączę sprzedaż, technologię i komunikację, tworząc rozwiązania zwiększające wyniki i skalowalność biznesu.</p>
+  <div class="hero-btns">
+    <a href="#kontakt" class="btn-primary"><span>Porozmawiajmy</span></a>
+    <a href="#doswiadczenie" class="btn-outline">Zobacz doświadczenie</a>
+  </div>
+  <div class="hero-scroll-hint">
+    <div class="line-h"></div>
+    <span>Scroll</span>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="about-image-wrap reveal-left">
+    <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&q=80&grayscale" alt="Michał Ćwikła" onerror="this.style.background='#1a1a1a'">
+    <div class="about-image-frame"></div>
+  </div>
+  <div class="about-text">
+    <div class="section-label reveal">O mnie</div>
+    <h2 class="section-title reveal">Sprzedaż + Wdrożenie + Operacja</h2>
+    <div class="divider reveal"></div>
+    <p class="reveal">Prowadzę sprzedaż end-to-end, buduję i porządkuję procesy, mam doświadczenie liderskie i pracuję z no-code oraz AI. Łączę sprzedaż z wdrożeniem i operacją — od Allianz, przez Caterings, po własne rozwiązania CRM.</p>
+    <p class="reveal">Moje podejście to zawsze: <strong>konkretny wynik, mierzalny efekt i realna wartość dla biznesu.</strong></p>
+    <div class="about-pillars">
+      <div class="pillar">
+        <div class="pillar-icon"></div>
+        <div class="pillar-text"><strong>Budowa systemów CRM</strong> opartych o AI i no-code</div>
+      </div>
+      <div class="pillar">
+        <div class="pillar-icon"></div>
+        <div class="pillar-text"><strong>Automatyzacja procesów</strong> sprzedażowych i operacyjnych</div>
+      </div>
+      <div class="pillar">
+        <div class="pillar-icon"></div>
+        <div class="pillar-text"><strong>Iteracyjne podejście:</strong> testowanie → optymalizacja → wdrożenie</div>
+      </div>
+      <div class="pillar">
+        <div class="pillar-icon"></div>
+        <div class="pillar-text"><strong>Łączenie sprzedaży,</strong> produktu, technologii i komunikacji</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS -->
+<div class="stats-bar">
+  <div class="stat-item reveal">
+    <span class="stat-num" data-target="6518">0<span>+</span></span>
+    <span class="stat-label">Obserwujących LinkedIn</span>
+  </div>
+  <div class="stat-item reveal">
+    <span class="stat-num" data-target="82899">0<span>+</span></span>
+    <span class="stat-label">Zasięgów w 365 dni</span>
+  </div>
+  <div class="stat-item reveal">
+    <span class="stat-num" data-target="51">0<span>+</span></span>
+    <span class="stat-label">Kompetencji</span>
+  </div>
+  <div class="stat-item reveal">
+    <span class="stat-num" data-target="500">0<span>+</span></span>
+    <span class="stat-label">Narzędzi AI w bazie</span>
+  </div>
+</div>
+
+<!-- KOMPETENCJE -->
+<section id="kompetencje">
+  <div class="skills-header">
+    <div>
+      <div class="section-label reveal">Kompetencje</div>
+      <h2 class="section-title reveal">51 obszarów ekspertyzy</h2>
+    </div>
+  </div>
+
+  <!-- Marquee 1 -->
+  <div class="marquee-wrap">
+    <div class="marquee-track" id="marquee1"></div>
+  </div>
+  <!-- Marquee 2 -->
+  <div class="marquee-wrap">
+    <div class="marquee-track reverse" id="marquee2"></div>
+  </div>
+
+  <!-- GRID - top skills -->
+  <div class="skills-grid" id="skills-grid"></div>
+</section>
+
+<!-- WSPOLPRACA -->
+<section id="wspolpraca">
+  <div class="section-label reveal">Współpraca</div>
+  <h2 class="section-title reveal">Jak mogę pomóc?</h2>
+  <div class="divider reveal"></div>
+  <div class="collab-grid">
+    <div class="collab-card reveal-left">
+      <span class="collab-icon">🏢</span>
+      <h3 class="collab-title">Dla pracodawców</h3>
+      <p class="collab-desc">Budowa procesu sprzedaży, wdrożenie CRM/no-code/AI, rozwój komunikacji handlowej, standaryzacja pracy zespołu, skalowanie lead generation.</p>
+    </div>
+    <div class="collab-card reveal-right">
+      <span class="collab-icon">🤝</span>
+      <h3 class="collab-title">Dla partnerów biznesowych</h3>
+      <p class="collab-desc">Współpraca przy sprzedaży, wdrożeniach CRM, automatyzacji AI, budowie procesów lead generation i komunikacji z klientem.</p>
+    </div>
+  </div>
+</section>
+
+<!-- DOSWIADCZENIE -->
+<section id="doswiadczenie">
+  <div class="section-label reveal">Doświadczenie</div>
+  <h2 class="section-title reveal">Ścieżka kariery</h2>
+  <div class="divider reveal"></div>
+  <div class="timeline" id="timeline"></div>
+</section>
+
+<!-- REKOMENDACJE -->
+<section id="rekomendacje">
+  <div class="rec-header">
+    <div>
+      <div class="section-label reveal">Rekomendacje</div>
+      <h2 class="section-title reveal">Co mówią klienci</h2>
+    </div>
+    <div class="linkedin-stats reveal-right">
+      <div class="lstat">
+        <span class="lstat-num">6 518</span>
+        <span class="lstat-label">Obserwujących</span>
+      </div>
+      <div class="lstat">
+        <span class="lstat-num">+56.2%</span>
+        <span class="lstat-label">Wzrost YoY</span>
+      </div>
+      <div class="lstat">
+        <span class="lstat-num">82 899</span>
+        <span class="lstat-label">Zasięgów</span>
+      </div>
+    </div>
+  </div>
+  <div class="rec-track-wrap">
+    <div class="rec-track" id="rec-track"></div>
+  </div>
+</section>
+
+<!-- KONTAKT -->
+<section id="kontakt">
+  <div>
+    <div class="section-label reveal">Kontakt</div>
+    <h2 class="contact-big reveal">Porozmawiajmy<br>o <span>współpracy</span></h2>
+    <p class="reveal" style="font-size:.85rem;color:var(--gray);line-height:1.8;max-width:380px;">Jeśli szukasz kogoś, kto łączy sprzedaż z technologią — napisz lub zadzwoń.</p>
+    <div class="contact-info reveal">
+      <div class="contact-info-item"><div class="dot"></div>Gdańsk 80-266, al. Grunwaldzka 163</div>
+      <div class="contact-info-item"><div class="dot"></div>michal.cw2891@gmail.com</div>
+      <div class="contact-info-item"><div class="dot"></div>LinkedIn: Michał Ćwikła</div>
+    </div>
+  </div>
+  <div class="contact-form reveal-right">
+    <div class="form-row">
+      <div class="form-field"><input type="text" placeholder="Imię i nazwisko"></div>
+      <div class="form-field"><input type="tel" placeholder="Telefon"></div>
+    </div>
+    <div class="form-field"><input type="email" placeholder="E-mail"></div>
+    <div class="form-field"><input type="text" placeholder="Firma (opcjonalnie)"></div>
+    <div class="form-field"><textarea placeholder="Wiadomość..."></textarea></div>
+    <button class="btn-submit"><span>Wyślij wiadomość</span></button>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <span class="footer-logo">Michał Ćwikła</span>
+  <p>© 2025 Michał Ćwikła. Wszystkie prawa zastrzeżone.</p>
+  <p>Gdańsk · Sprzedaż · Procesy · AI</p>
+</footer>
+
+<script>
+// DATA
+const skills = [
+  { n:1,  t:"Projektowanie i optymalizacja procesów sprzedażowych", d:"Mapowanie, analiza i przebudowa procesów w celu skrócenia czasu cyklu i zwiększenia konwersji." },
+  { n:2,  t:"Budowa i skalowanie lejków sprzedażowych", d:"Projektowanie lejków od etapu pozyskania leada do zamknięcia sprzedaży." },
+  { n:3,  t:"Sprzedaż bezpośrednia, telefoniczna i online", d:"Prowadzenie sprzedaży w trzech modelach: terenowym, telefonicznym i zdalnym." },
+  { n:4,  t:"Prowadzenie procesu sprzedaży end-to-end", d:"Obsługa klienta od pierwszego kontaktu po podpisanie umowy i obsługę posprzedażową." },
+  { n:5,  t:"Negocjacje i domykanie sprzedaży", d:"Techniki negocjacyjne, zarządzanie obiekcjami i skuteczne zamykanie procesu sprzedaży." },
+  { n:6,  t:"Pozyskiwanie klientów B2B i B2C", d:"Budowanie pipeline'u przez outreach online, LinkedIn, telefon oraz kontakt bezpośredni." },
+  { n:7,  t:"Analiza rynku i konkurencji", d:"Badanie otoczenia konkurencyjnego, trendów rynkowych i pozycji własnej oferty." },
+  { n:8,  t:"Identyfikacja luk produktowych", d:"Wykrywanie niezaspokojonych potrzeb klientów i obszarów bez skutecznych rozwiązań." },
+  { n:9,  t:"Tworzenie ofert opartych na realnym popycie", d:"Konstruowanie propozycji wartości na podstawie rzeczywistych potrzeb klientów." },
+  { n:10, t:"Koordynacja procesu go-to-market", d:"Planowanie i wdrażanie strategii wprowadzenia produktu — od pozycjonowania po sprzedaże." },
+  { n:11, t:"Tworzenie i rozwój produktów (FMCG / SaaS / usługi)", d:"Projektowanie produktów w trzech kategoriach: FMCG, SaaS i usługi profesjonalne." },
+  { n:12, t:"Strategia komunikacji i content sprzedażowy", d:"Budowanie spójnej narracji marki i treści aktywnie wspierających sprzedaż." },
+  { n:25, t:"Budowa systemów CRM (no-code, AI)", d:"Projektowanie i wdrażanie systemów zarządzania klientami z wykorzystaniem narzędzi no-code i AI." },
+  { n:26, t:"Automatyzacja procesów sprzedażowych i operacyjnych", d:"Eliminowanie ręcznych czynności przez automatyczne przepływy pracy." },
+  { n:27, t:"Projektowanie narzędzi zwiększających efektywność", d:"Tworzenie dedykowanych rozwiązań szybszych niż dostępne standardy rynkowe." },
+  { n:28, t:"Wykorzystanie AI w sprzedaży, marketingu i operacjach", d:"Praktyczne wdrażanie narzędzi AI do generowania treści, analizy danych i wsparcia procesów." },
+  { n:29, t:"Baza 500+ narzędzi AI", d:"Znajomość i aktywne stosowanie ponad 100 narzędzi AI z szeroką orientacją w 500+ dostępnych." },
+  { n:30, t:"6 wersji CRM od zera w 3 miesiące", d:"Zaprojektowanie i przetestowanie 5 prototypów CRM aż do finalnego rozwiązania gotowego do wdrożenia." },
+];
+
+const marqueeSkills1 = [
+  "Sprzedaż end-to-end", "Budowa CRM", "Automatyzacja AI", "Lead Generation", "Negocjacje",
+  "Go-to-Market", "No-code", "Coaching sprzedażowy", "Analiza rynku", "Skalowanie procesów",
+  "B2B / B2C", "Lejki sprzedażowe", "Warsztaty & Szkolenia", "Growth Hacking", "Customer Success"
+];
+const marqueeSkills2 = [
+  "Zarządzanie kryzysowe", "LinkedIn Outreach", "Segmentacja rynku", "Mentoring liderów",
+  "FMCG / SaaS", "Kaizen operacyjny", "Integracja API", "Ekspansja międzynarodowa",
+  "Retention", "ISO / HACCP", "Figma", "Google Workspace", "Pressure Testing", "Transfer know-how"
+];
+
+const timeline = [
+  {
+    dur:"2 lata", period:"maj 2024 – obecnie",
+    company:"ALLIANZ POLSKA", role:"Agent Ubezpieczeniowy",
+    items:[
+      "Sprzedaż end-to-end w modelu 100% zdalnym (LinkedIn, Facebook)",
+      "Budowa marki „Ubezpieczone Ryzyko Zawodowe" (6 500+ obserwujących)",
+      "Własne narzędzie CRM oparte na no-code i AI",
+      "Odzysk 2–3 godzin dziennie przez automatyzację",
+      "Wdrożenie CRM u innych agentów w modelu abonamentowym"
+    ],
+    badge:"🏆 Debiut Roku 2024 — Najmłodszy wyróżniony agent w historii Allianz"
+  },
+  {
+    dur:"7 lat 8 msc", period:"wrzesień 2018 – obecnie",
+    company:"WŁASNA DZIAŁALNOŚĆ", role:"Spekulant giełdowy, inwestor i analityk rynkowy",
+    items:[
+      "Niezależne inwestowanie na rynkach finansowych",
+      "Analiza trendów, zarządzanie portfelem akcji i inwestycji alternatywnych"
+    ]
+  },
+  {
+    dur:"4 msc", period:"listopad 2023 – luty 2024",
+    company:"SISTEMO ENERGY", role:"Dyrektor Sprzedaży",
+    items:[
+      "Zarządzanie zespołem sprzedażowym",
+      "Budowanie strategii sprzedażowej",
+      "Negocjacje kontraktów B2B w branży energetycznej"
+    ]
+  },
+  {
+    dur:"9 msc", period:"czerwiec 2023 – luty 2024",
+    company:"SUPREME ENERGY", role:"Manager Zespołu Handlowców",
+    items:[
+      "Budowa i rozwój zespołu sprzedaży D2D (rekrutacja, szkolenia, wdrożenie)",
+      "Standaryzacja procesu sprzedaży i komunikacji",
+      "Coaching 1:1 w realnych warunkach sprzedażowych",
+      "Autorski skrypt sprzedażowy zwiększający skuteczność zespołu"
+    ]
+  },
+  {
+    dur:"5 msc", period:"luty 2023 – czerwiec 2023",
+    company:"NEPTUN ENERGY", role:"Przedstawiciel Handlowy",
+    items:[
+      "Sprzedaż D2D (B2C/B2B) — pełny proces: pozyskanie, prezentacja, domknięcie",
+      "Zarządzanie dokumentacją i procesem w CRM"
+    ],
+    badge:"🏅 Najwyższy wynik sprzedażowy — nagroda „Dzika miesiąca""
+  },
+  {
+    dur:"7 msc", period:"sierpień 2022 – luty 2023",
+    company:"CATERINGS", role:"Sales Manager",
+    items:[
+      "Sprzedaż i wdrożenia systemu SaaS (CRM) dla cateringów dietetycznych",
+      "Mapowanie procesów klientów i projektowanie rozwiązań",
+      "Połączenie sprzedaży, produktu i wdrożeń w jeden spójny proces"
+    ]
+  },
+  {
+    dur:"1 rok 10 msc", period:"listopad 2020 – lipiec 2022",
+    company:"SFD", role:"Specjalista ds. Wdrażania Nowych Produktów",
+    items:[
+      "Analiza globalnego rynku i identyfikacja luk produktowych",
+      "Wprowadzenie 30+ produktów (NutLove, FitKing, AllDeynn, SFD, AllNutrition)",
+      "Koordynacja procesu go-to-market (R&D, produkcja, marketing, sprzedaż)",
+      "Budowa bazy 15 000+ produktów do adaptacji na rynek polski"
+    ]
+  },
+];
+
+const recommendations = [
+  { q:"Zdecydowanie polecam współpracę z Panem Michałem. Szukałem kompleksowej ochrony na wypadek choroby i NNW — Pan Michał wykazał się ogromnym profesjonalizmem i elastycznością, przygotowując ofertę, która nie miała sobie równych na rynku.", name:"Michal Domnik", title:"HSE Offshore Medic" },
+  { q:"Wyróżniający się profesjonalizm i indywidualne podejście. Pełna transparentność proponowanych możliwości. Lepiej nie można trafić.", name:"Maciej Sekieta", title:"Technik turbin wiatrowych" },
+  { q:"Pan Michał to świetny agent ubezpieczeniowy. Wzorowo przygotowany do konsultacji. Potrafi w prosty i zrozumiały sposób wytłumaczyć, z którego ubezpieczenia warto skorzystać. Indywidualne podejście do klienta.", name:"Kamil Polechonski", title:"Offshore Project QHSE-S Engineer" },
+  { q:"Polecam współpracę z Michałem — świetny kontakt, konkretne podejście. Pomógł mi dobrać odpowiednie ubezpieczenie dla pracy alpinisty przemysłowego. Pełen profesjonalizm, ale na luzie.", name:"Agata Szymonik", title:"Alpinista przemysłowy IRATA" },
+  { q:"Michał wyróżnia się nie tylko ogromną wiedzą branżową, ale też indywidualnym podejściem do klienta. Zawsze dostępny, zaangażowany i pełen inicjatywy — widać, że naprawdę zależy mu na dobru klienta.", name:"Tomasz Babkin", title:"IMCA Diver / IRATA L3" },
+  { q:"Michał to prawdziwy specjalista w temacie ubezpieczeń w branży podwyższonego ryzyka. Z Michałem kontakt to czysta przyjemność — działa szybko i skutecznie. Zawsze można na niego liczyć.", name:"Stanisław Zgliński", title:"IMCA Air Diver / IRATA L3" },
+  { q:"Fachowe doradztwo, indywidualne podejście i szybka obsługa sprawiły, że cały proces wyboru polisy przebiegł sprawnie i bezproblemowo. Z pełnym przekonaniem polecam współpracę!", name:"Radosław Frąckowiak", title:"Technik Turbin Wiatrowych" },
+  { q:"Bardzo fajne podejście do klienta, wysłuchanie potrzeb na wysokim poziomie. Z pewnością polecam.", name:"Rafał Jesionowski", title:"Wind turbine technician" },
+  { q:"Michał pomógł mi dobrać odpowiednie ubezpieczenie — nie naciska, wszystko wytłumaczył. Dużo czasu spędzam na projektach w Niemczech, ważne było znalezienie kogoś z solidnym podejściem. Polecam!", name:"Robert Górski", title:"Monter telekomunikacyjny" },
+];
+
+// INIT
+window.addEventListener('DOMContentLoaded', () => {
+  buildMarquees();
+  buildSkillsGrid();
+  buildTimeline();
+  buildRecommendations();
+  initLoader();
+});
+
+function buildMarquees() {
+  const t1 = document.getElementById('marquee1');
+  const t2 = document.getElementById('marquee2');
+  const items1 = [...marqueeSkills1, ...marqueeSkills1];
+  const items2 = [...marqueeSkills2, ...marqueeSkills2];
+  t1.innerHTML = items1.map(s => `<div class="marquee-item"><span class="num">◆</span>${s}</div>`).join('');
+  t2.innerHTML = items2.map(s => `<div class="marquee-item"><span class="num">◆</span>${s}</div>`).join('');
+}
+
+function buildSkillsGrid() {
+  const grid = document.getElementById('skills-grid');
+  grid.innerHTML = skills.map(s => `
+    <div class="skill-card">
+      <div class="skill-num">${String(s.n).padStart(2,'0')}</div>
+      <div class="skill-title">${s.t}</div>
+      <div class="skill-desc">${s.d}</div>
+    </div>
+  `).join('');
+}
+
+function buildTimeline() {
+  const tl = document.getElementById('timeline');
+  tl.innerHTML = timeline.map(t => `
+    <div class="timeline-item">
+      <div class="timeline-date">
+        <span class="timeline-duration">${t.dur}</span>
+        <span class="timeline-period">${t.period}</span>
+      </div>
+      <div class="timeline-content">
+        <div class="timeline-company">${t.company}</div>
+        <div class="timeline-role">${t.role}</div>
+        <ul class="timeline-list">${t.items.map(i=>`<li>${i}</li>`).join('')}</ul>
+        ${t.badge ? `<div class="timeline-badge">${t.badge}</div>` : ''}
+      </div>
+    </div>
+  `).join('');
+}
+
+function buildRecommendations() {
+  const track = document.getElementById('rec-track');
+  const doubled = [...recommendations, ...recommendations];
+  track.innerHTML = doubled.map(r => `
+    <div class="rec-card">
+      <div class="rec-stars">★★★★★</div>
+      <p class="rec-quote">"${r.q}"</p>
+      <div class="rec-author">
+        <div class="rec-avatar">${r.name.charAt(0)}</div>
+        <div>
+          <div class="rec-name">${r.name}</div>
+          <div class="rec-title">${r.title}</div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function initLoader() {
+  const bar = document.getElementById('loader-bar');
+  const pct = document.getElementById('loader-pct');
+  const loader = document.getElementById('loader');
+  let p = 0;
+  const interval = setInterval(() => {
+    p += Math.random() * 15;
+    if (p >= 100) { p = 100; clearInterval(interval); }
+    bar.style.width = p + '%';
+    pct.textContent = Math.round(p) + '%';
+    if (p === 100) {
+      setTimeout(() => {
+        gsap.to(loader, { opacity:0, duration:.6, ease:'power2.in', onComplete:() => {
+          loader.style.display = 'none';
+          initAnimations();
+        }});
+      }, 300);
+    }
+  }, 80);
+}
+
+function initAnimations() {
+  gsap.registerPlugin(ScrollTrigger);
+  initCursor();
+  initThree();
+  initHero();
+  initScrollAnimations();
+  initCounters();
+  initNav();
+}
+
+function initCursor() {
+  const cur = document.getElementById('cursor');
+  const fol = document.getElementById('cursor-follower');
+  let mx=0, my=0, fx=0, fy=0;
+  document.addEventListener('mousemove', e => { mx=e.clientX; my=e.clientY; });
+  function loop() {
+    cur.style.left = mx+'px'; cur.style.top = my+'px';
+    fx += (mx-fx)*.12; fy += (my-fy)*.12;
+    fol.style.left = fx+'px'; fol.style.top = fy+'px';
+    requestAnimationFrame(loop);
+  }
+  loop();
+  document.querySelectorAll('a, button, .skill-card, .rec-card, .collab-card').forEach(el => {
+    el.addEventListener('mouseenter', () => {
+      cur.style.width='20px'; cur.style.height='20px';
+      fol.style.width='60px'; fol.style.height='60px';
+      fol.style.borderColor='rgba(201,169,110,.5)';
+    });
+    el.addEventListener('mouseleave', () => {
+      cur.style.width='12px'; cur.style.height='12px';
+      fol.style.width='40px'; fol.style.height='40px';
+      fol.style.borderColor='rgba(255,255,255,.3)';
+    });
+  });
+}
+
+function initThree() {
+  const canvas = document.getElementById('bg-canvas');
+  const renderer = new THREE.WebGLRenderer({ canvas, alpha:true, antialias:true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+  renderer.setSize(window.innerWidth, window.innerHeight);
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+  camera.position.z = 30;
+
+  // Particles
+  const geo = new THREE.BufferGeometry();
+  const count = 2000;
+  const pos = new Float32Array(count*3);
+  const sizes = new Float32Array(count);
+  for(let i=0;i<count;i++){
+    pos[i*3]   = (Math.random()-0.5)*100;
+    pos[i*3+1] = (Math.random()-0.5)*100;
+    pos[i*3+2] = (Math.random()-0.5)*50;
+    sizes[i] = Math.random()*2+0.5;
+  }
+  geo.setAttribute('position', new THREE.BufferAttribute(pos,3));
+  geo.setAttribute('size', new THREE.BufferAttribute(sizes,1));
+
+  const mat = new THREE.PointsMaterial({
+    color: 0xc9a96e, size:0.08, transparent:true, opacity:0.4,
+    sizeAttenuation:true, blending: THREE.AdditiveBlending
+  });
+  const particles = new THREE.Points(geo, mat);
+  scene.add(particles);
+
+  // Lines grid
+  const lineMat = new THREE.LineBasicMaterial({ color:0x222222, transparent:true, opacity:0.3 });
+  for(let i=-5;i<=5;i++){
+    const lg = new THREE.BufferGeometry().setFromPoints([
+      new THREE.Vector3(-50, i*10, -20), new THREE.Vector3(50, i*10, -20)
+    ]);
+    scene.add(new THREE.Line(lg, lineMat));
+    const lg2 = new THREE.BufferGeometry().setFromPoints([
+      new THREE.Vector3(i*10, -50, -20), new THREE.Vector3(i*10, 50, -20)
+    ]);
+    scene.add(new THREE.Line(lg2, lineMat));
+  }
+
+  let mx=0, my=0;
+  document.addEventListener('mousemove', e => {
+    mx = (e.clientX/window.innerWidth - 0.5)*2;
+    my = (e.clientY/window.innerHeight - 0.5)*2;
+  });
+
+  window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth/window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  });
+
+  let t=0;
+  function animate() {
+    requestAnimationFrame(animate);
+    t += 0.003;
+    particles.rotation.y = t*0.1 + mx*0.05;
+    particles.rotation.x = my*0.03;
+    camera.position.x += (mx*2 - camera.position.x)*0.03;
+    camera.position.y += (-my*2 - camera.position.y)*0.03;
+    renderer.render(scene, camera);
+  }
+  animate();
+}
+
+function initHero() {
+  const tl = gsap.timeline({ delay:.3 });
+  tl.to('.hero-tag', { opacity:1, y:0, duration:.8, ease:'power3.out' })
+    .to('.hero-name .word', { y:'0%', duration:1, stagger:.1, ease:'power4.out' }, '-=0.4')
+    .to('.hero-sub', { opacity:1, y:0, duration:.8, ease:'power3.out' }, '-=0.6')
+    .to('.hero-btns', { opacity:1, y:0, duration:.8, ease:'power3.out' }, '-=0.6')
+    .to('.hero-scroll-hint', { opacity:1, duration:.6 }, '-=0.4');
+}
+
+function initScrollAnimations() {
+  // Reveal elements
+  gsap.utils.toArray('.reveal').forEach(el => {
+    gsap.fromTo(el, { opacity:0, y:30 }, {
+      opacity:1, y:0, duration:1, ease:'power3.out',
+      scrollTrigger:{ trigger:el, start:'top 85%', toggleActions:'play none none none' }
+    });
+  });
+  gsap.utils.toArray('.reveal-left').forEach(el => {
+    gsap.fromTo(el, { opacity:0, x:-40 }, {
+      opacity:1, x:0, duration:1, ease:'power3.out',
+      scrollTrigger:{ trigger:el, start:'top 85%', toggleActions:'play none none none' }
+    });
+  });
+  gsap.utils.toArray('.reveal-right').forEach(el => {
+    gsap.fromTo(el, { opacity:0, x:40 }, {
+      opacity:1, x:0, duration:1, ease:'power3.out',
+      scrollTrigger:{ trigger:el, start:'top 85%', toggleActions:'play none none none' }
+    });
+  });
+
+  // Pillars
+  gsap.utils.toArray('.pillar').forEach((el, i) => {
+    gsap.to(el, {
+      opacity:1, x:0, duration:.7, ease:'power3.out', delay:i*0.1,
+      scrollTrigger:{ trigger:'.about-pillars', start:'top 80%' }
+    });
+  });
+
+  // Skill cards
+  gsap.utils.toArray('.skill-card').forEach((el, i) => {
+    gsap.to(el, {
+      opacity:1, y:0, duration:.6, ease:'power3.out', delay:(i%3)*0.1,
+      scrollTrigger:{ trigger:el, start:'top 90%' }
+    });
+  });
+
+  // Timeline items
+  gsap.utils.toArray('.timeline-item').forEach((el, i) => {
+    gsap.to(el, {
+      opacity:1, x:0, duration:.7, ease:'power3.out', delay:i*0.05,
+      scrollTrigger:{ trigger:el, start:'top 85%' }
+    });
+  });
+
+  // Section transitions
+  gsap.utils.toArray('section').forEach(s => {
+    gsap.fromTo(s, { opacity:.4 }, {
+      opacity:1, duration:1,
+      scrollTrigger:{ trigger:s, start:'top 80%', end:'top 30%', scrub:true }
+    });
+  });
+}
+
+function initCounters() {
+  document.querySelectorAll('.stat-num[data-target]').forEach(el => {
+    const target = parseInt(el.dataset.target);
+    const suffix = el.querySelector('span').outerHTML;
+    ScrollTrigger.create({
+      trigger: el,
+      start: 'top 85%',
+      onEnter: () => {
+        gsap.to({ v:0 }, {
+          v: target,
+          duration: 2,
+          ease: 'power2.out',
+          onUpdate: function() { el.innerHTML = Math.round(this.targets()[0].v).toLocaleString('pl') + suffix; }
+        });
+      },
+      once: true
+    });
+  });
+}
+
+function initNav() {
+  const nav = document.getElementById('nav');
+  window.addEventListener('scroll', () => {
+    if(window.scrollY > 80) nav.classList.add('scrolled');
+    else nav.classList.remove('scrolled');
+  });
+}
+</script>
+</body>
+</html>
