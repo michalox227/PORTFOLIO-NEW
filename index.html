@@ -4,990 +4,274 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Michał Ćwikła — Sprzedaż · Procesy · Automatyzacja</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
 <style>
-  :root {
-    --bg: #080808;
-    --bg2: #0f0f0f;
-    --bg3: #161616;
-    --white: #f5f5f5;
-    --gray: #888;
-    --gray2: #444;
-    --accent: #e8e0d0;
-    --gold: #c9a96e;
-    --gold2: #a07840;
-  }
+:root{
+  --bg:#070707;--bg2:#0d0d0d;--bg3:#141414;--bg4:#1a1a1a;
+  --white:#f0ede8;--gray:#777;--gray2:#333;--gray3:#1f1f1f;
+  --gold:#c8a96a;--gold2:#a07840;--gold-dim:rgba(200,169,106,.12);
+  --font:'Space Grotesk',sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--white);font-family:var(--font);overflow-x:hidden;cursor:none}
 
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+/* CURSOR */
+.cur{position:fixed;width:8px;height:8px;background:var(--white);border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);mix-blend-mode:difference;transition:width .15s,height .15s}
+.cur-ring{position:fixed;width:36px;height:36px;border:1px solid rgba(200,169,106,.5);border-radius:50%;pointer-events:none;z-index:9998;transform:translate(-50%,-50%);transition:width .3s,height .3s,border-color .3s,background .3s}
+.cur.big{width:16px;height:16px}
+.cur-ring.big{width:60px;height:60px;background:rgba(200,169,106,.04);border-color:rgba(200,169,106,.8)}
 
-  html { scroll-behavior: smooth; font-size: 16px; }
+/* CANVAS */
+#bg-canvas{position:fixed;inset:0;z-index:0;pointer-events:none}
 
-  body {
-    background: var(--bg);
-    color: var(--white);
-    font-family: 'Space Grotesk', sans-serif;
-    overflow-x: hidden;
-    cursor: none;
-  }
+/* NOISE */
+body::after{content:'';position:fixed;inset:0;z-index:3;pointer-events:none;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");opacity:.018}
 
-  /* CUSTOM CURSOR */
-  .cursor {
-    position: fixed;
-    width: 12px; height: 12px;
-    background: var(--white);
-    border-radius: 50%;
-    pointer-events: none;
-    z-index: 9999;
-    transform: translate(-50%, -50%);
-    transition: width .2s, height .2s, background .2s;
-    mix-blend-mode: difference;
-  }
-  .cursor-follower {
-    position: fixed;
-    width: 40px; height: 40px;
-    border: 1px solid rgba(255,255,255,.3);
-    border-radius: 50%;
-    pointer-events: none;
-    z-index: 9998;
-    transform: translate(-50%, -50%);
-    transition: transform .12s ease-out, width .3s, height .3s, border-color .3s;
-  }
-  body:hover .cursor { opacity: 1; }
-  a:hover ~ .cursor, button:hover ~ .cursor { width: 20px; height: 20px; }
+/* LOADER */
+#loader{position:fixed;inset:0;z-index:9000;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px}
+.ld-n{font-size:clamp(1.2rem,3vw,2rem);font-weight:700;letter-spacing:.4em;text-transform:uppercase;color:var(--white)}
+.ld-bw{width:240px;height:1px;background:rgba(255,255,255,.08);overflow:hidden;position:relative}
+.ld-b{position:absolute;top:0;left:0;height:100%;background:linear-gradient(90deg,var(--gold2),var(--gold));width:0;transition:width .04s linear}
+.ld-p{font-size:.6rem;letter-spacing:.25em;color:var(--gray);text-transform:uppercase}
 
-  /* CANVAS BG */
-  #bg-canvas {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    z-index: 0;
-    pointer-events: none;
-  }
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:200;padding:28px 6vw;display:flex;justify-content:space-between;align-items:center;transition:padding .4s,background .4s,backdrop-filter .4s}
+nav.s{padding:18px 6vw;background:rgba(7,7,7,.9);backdrop-filter:blur(24px);border-bottom:1px solid rgba(255,255,255,.04)}
+.nav-logo{font-size:.75rem;font-weight:700;letter-spacing:.4em;text-transform:uppercase;color:var(--white);text-decoration:none}
+.nav-links{display:flex;gap:32px;list-style:none}
+.nav-links a{font-size:.65rem;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--gray);text-decoration:none;transition:color .3s;position:relative}
+.nav-links a::after{content:'';position:absolute;bottom:-3px;left:0;width:0;height:1px;background:var(--gold);transition:width .35s}
+.nav-links a:hover{color:var(--white)}
+.nav-links a:hover::after{width:100%}
+/* hamburger */
+.nav-ham{display:none;flex-direction:column;gap:5px;cursor:none;padding:4px}
+.nav-ham span{display:block;width:24px;height:1px;background:var(--white);transition:transform .3s,opacity .3s,width .3s}
+.nav-ham.open span:nth-child(1){transform:translateY(6px) rotate(45deg)}
+.nav-ham.open span:nth-child(2){opacity:0;width:0}
+.nav-ham.open span:nth-child(3){transform:translateY(-6px) rotate(-45deg)}
+.mob-menu{position:fixed;inset:0;z-index:190;background:rgba(7,7,7,.97);backdrop-filter:blur(30px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:40px;opacity:0;pointer-events:none;transition:opacity .4s}
+.mob-menu.open{opacity:1;pointer-events:all}
+.mob-menu a{font-size:2rem;font-weight:700;letter-spacing:-.02em;color:rgba(255,255,255,.2);text-decoration:none;transition:color .3s,transform .3s;transform:translateY(20px)}
+.mob-menu.open a{transform:translateY(0);color:var(--white)}
+.mob-menu a:hover{color:var(--gold)}
 
-  /* NAV */
-  nav {
-    position: fixed;
-    top: 0; left: 0; right: 0;
-    z-index: 100;
-    padding: 24px 48px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    transition: background .4s, backdrop-filter .4s;
-  }
-  nav.scrolled {
-    background: rgba(8,8,8,.85);
-    backdrop-filter: blur(20px);
-    border-bottom: 1px solid rgba(255,255,255,.05);
-  }
-  .nav-logo {
-    font-size: 1rem;
-    font-weight: 600;
-    letter-spacing: .1em;
-    text-transform: uppercase;
-    color: var(--white);
-    text-decoration: none;
-  }
-  .nav-links {
-    display: flex;
-    gap: 36px;
-    list-style: none;
-  }
-  .nav-links a {
-    font-size: .75rem;
-    font-weight: 500;
-    letter-spacing: .15em;
-    text-transform: uppercase;
-    color: var(--gray);
-    text-decoration: none;
-    transition: color .3s;
-    position: relative;
-  }
-  .nav-links a::after {
-    content: '';
-    position: absolute;
-    bottom: -4px; left: 0;
-    width: 0; height: 1px;
-    background: var(--gold);
-    transition: width .3s;
-  }
-  .nav-links a:hover { color: var(--white); }
-  .nav-links a:hover::after { width: 100%; }
+/* HERO */
+#hero{position:relative;height:100vh;min-height:600px;display:flex;flex-direction:column;justify-content:flex-end;padding:0 6vw 10vh;z-index:1;overflow:hidden}
+.hero-bg-text{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:clamp(10rem,22vw,22rem);font-weight:700;letter-spacing:-.05em;color:transparent;-webkit-text-stroke:1px rgba(255,255,255,.03);pointer-events:none;white-space:nowrap;user-select:none}
+.hero-tag{font-size:.62rem;font-weight:600;letter-spacing:.35em;text-transform:uppercase;color:var(--gold);margin-bottom:20px;opacity:0}
+.hero-h1{font-size:clamp(4rem,11vw,10rem);font-weight:700;line-height:.9;letter-spacing:-.04em;margin-bottom:32px}
+.hero-h1 .line{overflow:hidden;display:block}
+.hero-h1 .w{display:inline-block;transform:translateY(110%)}
+.hero-sub{font-size:clamp(.85rem,1.3vw,1rem);color:var(--gray);max-width:520px;line-height:1.8;opacity:0;transform:translateY(16px);margin-bottom:48px}
+.hero-ctas{display:flex;gap:14px;opacity:0;transform:translateY(16px)}
+.btn{display:inline-block;padding:15px 34px;font-family:var(--font);font-size:.72rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase;text-decoration:none;cursor:none;position:relative;overflow:hidden;transition:color .4s}
+.btn-w{background:var(--white);color:var(--bg);border:1px solid var(--white)}
+.btn-w::before{content:'';position:absolute;inset:0;background:var(--gold);transform:translateX(-102%);transition:transform .45s cubic-bezier(.77,0,.18,1)}
+.btn-w:hover::before{transform:translateX(0)}
+.btn-w span,.btn-b span{position:relative;z-index:1}
+.btn-b{background:transparent;color:var(--white);border:1px solid rgba(255,255,255,.15)}
+.btn-b:hover{border-color:rgba(200,169,106,.5);color:var(--gold)}
+.hero-scroll{position:absolute;right:6vw;bottom:10vh;display:flex;flex-direction:column;align-items:center;gap:8px;opacity:0}
+.hero-scroll .sv{font-size:.55rem;letter-spacing:.3em;text-transform:uppercase;color:var(--gray);writing-mode:vertical-rl}
+.hero-scroll .sa{width:1px;height:60px;background:linear-gradient(to bottom,var(--gold),transparent);animation:sa 2s infinite}
+@keyframes sa{0%{transform:scaleY(0);transform-origin:top}50%{transform:scaleY(1);transform-origin:top}51%{transform:scaleY(1);transform-origin:bottom}100%{transform:scaleY(0);transform-origin:bottom}}
 
-  /* HERO */
-  #hero {
-    position: relative;
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    padding: 0 10vw;
-    z-index: 1;
-    overflow: hidden;
-  }
-  .hero-tag {
-    font-size: .7rem;
-    font-weight: 500;
-    letter-spacing: .3em;
-    text-transform: uppercase;
-    color: var(--gold);
-    margin-bottom: 28px;
-    opacity: 0;
-  }
-  .hero-name {
-    font-size: clamp(3.5rem, 9vw, 8rem);
-    font-weight: 700;
-    line-height: .95;
-    letter-spacing: -.03em;
-    overflow: hidden;
-    margin-bottom: 24px;
-  }
-  .hero-name .line {
-    display: block;
-    overflow: hidden;
-  }
-  .hero-name .word {
-    display: inline-block;
-    transform: translateY(110%);
-  }
-  .hero-sub {
-    font-size: clamp(.9rem, 1.5vw, 1.1rem);
-    color: var(--gray);
-    max-width: 480px;
-    line-height: 1.7;
-    opacity: 0;
-    transform: translateY(20px);
-    margin-bottom: 48px;
-  }
-  .hero-btns {
-    display: flex;
-    gap: 16px;
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  .btn-primary {
-    padding: 14px 32px;
-    background: var(--white);
-    color: var(--bg);
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: .8rem;
-    font-weight: 600;
-    letter-spacing: .12em;
-    text-transform: uppercase;
-    border: none;
-    cursor: none;
-    text-decoration: none;
-    display: inline-block;
-    transition: background .3s, transform .3s;
-    position: relative;
-    overflow: hidden;
-  }
-  .btn-primary::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: var(--gold);
-    transform: translateX(-101%);
-    transition: transform .4s cubic-bezier(.77,0,.18,1);
-  }
-  .btn-primary:hover::after { transform: translateX(0); }
-  .btn-primary span { position: relative; z-index: 1; }
-  .btn-outline {
-    padding: 14px 32px;
-    background: transparent;
-    color: var(--white);
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: .8rem;
-    font-weight: 600;
-    letter-spacing: .12em;
-    text-transform: uppercase;
-    border: 1px solid rgba(255,255,255,.2);
-    cursor: none;
-    text-decoration: none;
-    display: inline-block;
-    transition: border-color .3s, color .3s;
-  }
-  .btn-outline:hover { border-color: var(--gold); color: var(--gold); }
+/* SECTIONS */
+section{position:relative;z-index:1}
+.s-label{font-size:.6rem;font-weight:600;letter-spacing:.35em;text-transform:uppercase;color:var(--gold);margin-bottom:14px}
+.s-title{font-size:clamp(2rem,4.5vw,3.8rem);font-weight:700;letter-spacing:-.03em;line-height:1.05}
+.s-div{width:36px;height:1px;background:var(--gold);margin:28px 0}
 
-  .hero-scroll-hint {
-    position: absolute;
-    bottom: 40px;
-    left: 10vw;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    opacity: 0;
-  }
-  .hero-scroll-hint .line-h {
-    width: 40px;
-    height: 1px;
-    background: var(--gray2);
-    position: relative;
-    overflow: hidden;
-  }
-  .hero-scroll-hint .line-h::after {
-    content: '';
-    position: absolute;
-    top: 0; left: -100%;
-    width: 100%; height: 100%;
-    background: var(--gold);
-    animation: lineMove 2s infinite;
-  }
-  @keyframes lineMove {
-    0% { left: -100%; }
-    100% { left: 100%; }
-  }
-  .hero-scroll-hint span {
-    font-size: .65rem;
-    letter-spacing: .2em;
-    text-transform: uppercase;
-    color: var(--gray2);
-  }
+/* ABOUT */
+#about{padding:clamp(80px,12vw,160px) 6vw;display:grid;grid-template-columns:5fr 7fr;gap:80px;align-items:center}
+.about-img{position:relative;aspect-ratio:.75;overflow:hidden}
+.about-img img{width:100%;height:100%;object-fit:cover;object-position:top;filter:grayscale(100%) contrast(1.05);transition:filter .8s,transform 1.2s}
+.about-img:hover img{filter:grayscale(40%);transform:scale(1.03)}
+.about-img-border{position:absolute;top:-14px;right:-14px;width:100%;height:100%;border:1px solid rgba(200,169,106,.15);pointer-events:none;z-index:-1}
+.about-img-tag{position:absolute;bottom:24px;left:24px;background:rgba(7,7,7,.85);backdrop-filter:blur(12px);padding:12px 20px;border-left:2px solid var(--gold)}
+.about-img-tag span{display:block;font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold)}
+.about-img-tag strong{font-size:.85rem;color:var(--white)}
+.about-body p{font-size:.93rem;color:var(--gray);line-height:1.9;margin-bottom:18px}
+.about-body p strong{color:var(--white);font-weight:600}
+.pillars{margin-top:40px;display:grid;grid-template-columns:1fr 1fr;gap:1px;background:rgba(255,255,255,.04)}
+.pillar{background:var(--bg);padding:20px;transition:background .3s}
+.pillar:hover{background:var(--bg3)}
+.pillar-dot{width:3px;height:3px;background:var(--gold);border-radius:50%;margin-bottom:10px}
+.pillar-t{font-size:.78rem;font-weight:600;color:var(--white);margin-bottom:4px}
+.pillar-s{font-size:.72rem;color:var(--gray);line-height:1.5}
 
-  /* SECTIONS */
-  section {
-    position: relative;
-    z-index: 1;
-  }
+/* STATS */
+.stats{background:var(--bg3);border-top:1px solid rgba(255,255,255,.04);border-bottom:1px solid rgba(255,255,255,.04);padding:clamp(48px,7vw,80px) 6vw;display:grid;grid-template-columns:repeat(4,1fr);gap:2px;background-image:linear-gradient(rgba(255,255,255,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.02) 1px,transparent 1px);background-size:60px 60px}
+.st{padding:32px;background:var(--bg3);position:relative;overflow:hidden;transition:background .3s}
+.st::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);transform:scaleX(0);transition:transform .5s}
+.st:hover::before{transform:scaleX(1)}
+.st:hover{background:var(--bg4)}
+.st-n{font-size:clamp(2.2rem,4vw,3.2rem);font-weight:700;letter-spacing:-.05em;color:var(--white);display:block}
+.st-n em{color:var(--gold);font-style:normal}
+.st-g{font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);margin:4px 0;display:block}
+.st-l{font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;color:var(--gray);display:block}
 
-  .section-label {
-    font-size: .65rem;
-    font-weight: 600;
-    letter-spacing: .35em;
-    text-transform: uppercase;
-    color: var(--gold);
-    margin-bottom: 16px;
-  }
-  .section-title {
-    font-size: clamp(2rem, 4vw, 3.5rem);
-    font-weight: 700;
-    letter-spacing: -.02em;
-    line-height: 1.1;
-  }
-  .divider {
-    width: 40px;
-    height: 1px;
-    background: var(--gold);
-    margin: 32px 0;
-  }
+/* KOMPETENCJE */
+#kompetencje{padding:clamp(80px,12vw,160px) 6vw}
+.k-head{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:48px;flex-wrap:wrap;gap:24px}
+.k-count{font-size:clamp(3rem,8vw,7rem);font-weight:700;letter-spacing:-.06em;color:transparent;-webkit-text-stroke:1px rgba(255,255,255,.08);line-height:1}
+.k-filters{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:48px}
+.k-f{padding:8px 18px;font-family:var(--font);font-size:.63rem;font-weight:500;letter-spacing:.14em;text-transform:uppercase;background:transparent;border:1px solid rgba(255,255,255,.08);color:var(--gray);cursor:none;transition:all .3s}
+.k-f.on,.k-f:hover{background:var(--gold);border-color:var(--gold);color:var(--bg)}
 
-  /* ABOUT */
-  #about {
-    padding: 140px 10vw;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 80px;
-    align-items: center;
-  }
-  .about-image-wrap {
-    position: relative;
-    aspect-ratio: 3/4;
-    overflow: hidden;
-  }
-  .about-image-wrap img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    filter: grayscale(100%);
-    transition: filter .6s;
-    transform: scale(1.05);
-  }
-  .about-image-wrap:hover img { filter: grayscale(60%); }
-  .about-image-frame {
-    position: absolute;
-    top: -16px; right: -16px;
-    width: 100%; height: 100%;
-    border: 1px solid rgba(201,169,110,.2);
-    pointer-events: none;
-    z-index: -1;
-  }
-  .about-text p {
-    font-size: 1rem;
-    color: var(--gray);
-    line-height: 1.85;
-    margin-bottom: 20px;
-  }
-  .about-text p strong { color: var(--white); font-weight: 600; }
-  .about-pillars {
-    margin-top: 40px;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
-  .pillar {
-    display: flex;
-    align-items: flex-start;
-    gap: 16px;
-    padding: 16px 0;
-    border-bottom: 1px solid rgba(255,255,255,.05);
-    opacity: 0;
-    transform: translateX(-20px);
-  }
-  .pillar-icon {
-    width: 4px;
-    height: 4px;
-    background: var(--gold);
-    border-radius: 50%;
-    margin-top: 8px;
-    flex-shrink: 0;
-  }
-  .pillar-text {
-    font-size: .85rem;
-    color: var(--gray);
-    line-height: 1.6;
-  }
-  .pillar-text strong { color: var(--white); }
+/* MARQUEE */
+.mq-wrap{overflow:hidden;margin-bottom:56px;mask-image:linear-gradient(90deg,transparent,black 8%,black 92%,transparent);-webkit-mask-image:linear-gradient(90deg,transparent,black 8%,black 92%,transparent)}
+.mq{display:flex;gap:0;width:max-content;animation:mq 35s linear infinite}
+.mq.rev{animation-direction:reverse}
+.mq:hover{animation-play-state:paused}
+.mq-i{padding:18px 36px;border:1px solid rgba(255,255,255,.05);margin-right:8px;font-size:.7rem;font-weight:500;letter-spacing:.1em;color:var(--gray);white-space:nowrap;flex-shrink:0;transition:all .3s;position:relative;overflow:hidden}
+.mq-i::before{content:'';position:absolute;inset:0;background:var(--gold-dim);transform:scaleX(0);transform-origin:left;transition:transform .35s}
+.mq-i:hover::before{transform:scaleX(1)}
+.mq-i:hover{color:var(--white);border-color:rgba(200,169,106,.3)}
+.mq-i span{position:relative;z-index:1}
+.mq-dot{color:var(--gold);margin-right:10px;font-size:.5rem}
+@keyframes mq{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 
-  /* STATS */
-  .stats-bar {
-    background: var(--bg3);
-    border-top: 1px solid rgba(255,255,255,.04);
-    border-bottom: 1px solid rgba(255,255,255,.04);
-    padding: 60px 10vw;
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 40px;
-  }
-  .stat-item { text-align: center; }
-  .stat-num {
-    font-size: clamp(2rem, 4vw, 3rem);
-    font-weight: 700;
-    letter-spacing: -.04em;
-    color: var(--white);
-    display: block;
-  }
-  .stat-num span { color: var(--gold); }
-  .stat-label {
-    font-size: .7rem;
-    letter-spacing: .15em;
-    text-transform: uppercase;
-    color: var(--gray);
-    margin-top: 8px;
-    display: block;
-  }
+/* SKILLS GRID */
+.sk-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:rgba(255,255,255,.04)}
+.sk-card{background:var(--bg);padding:28px 28px 32px;position:relative;overflow:hidden;transition:background .35s;opacity:0;transform:translateY(16px)}
+.sk-card.vis{opacity:1;transform:translateY(0)}
+.sk-card::after{content:'';position:absolute;bottom:0;left:0;width:0;height:1px;background:var(--gold);transition:width .45s cubic-bezier(.77,0,.18,1)}
+.sk-card:hover::after{width:100%}
+.sk-card:hover{background:var(--bg3)}
+.sk-n{font-size:.55rem;font-weight:700;letter-spacing:.25em;color:rgba(200,169,106,.4);margin-bottom:10px}
+.sk-t{font-size:.88rem;font-weight:600;color:var(--white);margin-bottom:8px;line-height:1.3}
+.sk-d{font-size:.76rem;color:var(--gray);line-height:1.7}
+.sk-card[data-hidden]{display:none}
 
-  /* KOMPETENCJE */
-  #kompetencje {
-    padding: 140px 10vw;
-  }
-  .skills-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
-    margin-bottom: 60px;
-  }
-  .skills-categories {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-    margin-top: 32px;
-    margin-bottom: 60px;
-  }
-  .skill-cat-btn {
-    padding: 8px 20px;
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: .7rem;
-    font-weight: 500;
-    letter-spacing: .12em;
-    text-transform: uppercase;
-    background: transparent;
-    border: 1px solid rgba(255,255,255,.1);
-    color: var(--gray);
-    cursor: none;
-    transition: all .3s;
-  }
-  .skill-cat-btn.active, .skill-cat-btn:hover {
-    background: var(--gold);
-    border-color: var(--gold);
-    color: var(--bg);
-  }
+/* WSPOLPRACA */
+#wspolpraca{padding:clamp(80px,12vw,160px) 6vw;background:var(--bg2)}
+.col-grid{display:grid;grid-template-columns:1fr 1fr;gap:2px;margin-top:56px;background:rgba(255,255,255,.04)}
+.col-c{background:var(--bg2);padding:clamp(40px,5vw,64px) clamp(32px,4vw,56px);position:relative;overflow:hidden;transition:background .4s}
+.col-c::before{content:'';position:absolute;left:0;top:0;bottom:0;width:0;background:linear-gradient(to right,rgba(200,169,106,.06),transparent);transition:width .5s}
+.col-c:hover::before{width:100%}
+.col-c:hover{background:var(--bg3)}
+.col-icon{font-size:1.8rem;margin-bottom:24px;display:block}
+.col-t{font-size:1.15rem;font-weight:700;margin-bottom:14px}
+.col-d{font-size:.82rem;color:var(--gray);line-height:1.85}
+.col-arrow{position:absolute;bottom:32px;right:32px;width:36px;height:36px;border:1px solid rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;font-size:.8rem;color:var(--gray);transition:all .3s}
+.col-c:hover .col-arrow{border-color:var(--gold);color:var(--gold);transform:rotate(-45deg)}
 
-  /* MARQUEE SKILLS */
-  .marquee-wrap {
-    overflow: hidden;
-    mask-image: linear-gradient(90deg, transparent, black 10%, black 90%, transparent);
-    -webkit-mask-image: linear-gradient(90deg, transparent, black 10%, black 90%, transparent);
-    margin-bottom: 80px;
-  }
-  .marquee-track {
-    display: flex;
-    gap: 0;
-    animation: marqueeAnim 40s linear infinite;
-    width: max-content;
-  }
-  .marquee-track.reverse { animation-direction: reverse; }
-  .marquee-item {
-    padding: 20px 40px;
-    border: 1px solid rgba(255,255,255,.06);
-    margin-right: 12px;
-    white-space: nowrap;
-    font-size: .75rem;
-    font-weight: 500;
-    letter-spacing: .1em;
-    color: var(--gray);
-    transition: all .3s;
-    flex-shrink: 0;
-    position: relative;
-  }
-  .marquee-item:hover {
-    border-color: rgba(201,169,110,.4);
-    color: var(--white);
-    background: rgba(201,169,110,.04);
-  }
-  .marquee-item .num {
-    font-size: .6rem;
-    color: var(--gold);
-    margin-right: 10px;
-    opacity: .7;
-  }
-  @keyframes marqueeAnim {
-    from { transform: translateX(0); }
-    to { transform: translateX(-50%); }
-  }
+/* DOSWIADCZENIE */
+#doswiadczenie{padding:clamp(80px,12vw,160px) 6vw}
+.tl{margin-top:72px;position:relative;padding-left:200px}
+.tl::before{content:'';position:absolute;left:160px;top:0;bottom:0;width:1px;background:linear-gradient(to bottom,transparent,rgba(255,255,255,.08) 8%,rgba(255,255,255,.08) 92%,transparent)}
+.tl-i{position:relative;margin-bottom:56px;opacity:0;transform:translateX(-16px);transition:opacity .6s,transform .6s}
+.tl-i.vis{opacity:1;transform:translateX(0)}
+.tl-dot{position:absolute;left:-44px;top:6px;width:9px;height:9px;border-radius:50%;border:1.5px solid var(--gray2);background:var(--bg);transition:border-color .3s,background .3s,box-shadow .3s}
+.tl-i:hover .tl-dot{border-color:var(--gold);background:var(--gold);box-shadow:0 0 12px rgba(200,169,106,.4)}
+.tl-meta{position:absolute;left:-198px;width:140px;text-align:right}
+.tl-dur{font-size:.6rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);display:block;margin-bottom:4px}
+.tl-per{font-size:.65rem;color:var(--gray2);line-height:1.4}
+.tl-body{padding-bottom:40px;border-bottom:1px solid rgba(255,255,255,.04)}
+.tl-co{font-size:.6rem;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--gray2);margin-bottom:6px}
+.tl-r{font-size:1.1rem;font-weight:700;color:var(--white);margin-bottom:14px;line-height:1.2}
+.tl-list{list-style:none}
+.tl-list li{font-size:.8rem;color:var(--gray);line-height:1.75;padding:3px 0 3px 18px;position:relative}
+.tl-list li::before{content:'—';position:absolute;left:0;color:rgba(200,169,106,.5);font-size:.7rem}
+.tl-badge{display:inline-flex;align-items:center;gap:8px;margin-top:14px;padding:6px 14px;font-size:.62rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;background:rgba(200,169,106,.08);border:1px solid rgba(200,169,106,.2);color:var(--gold)}
 
-  /* SKILLS GRID */
-  .skills-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1px;
-    background: rgba(255,255,255,.04);
-    border: 1px solid rgba(255,255,255,.04);
-  }
-  .skill-card {
-    background: var(--bg);
-    padding: 32px;
-    position: relative;
-    overflow: hidden;
-    transition: background .4s;
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  .skill-card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0;
-    width: 100%; height: 2px;
-    background: linear-gradient(90deg, var(--gold), transparent);
-    transform: scaleX(0);
-    transform-origin: left;
-    transition: transform .4s cubic-bezier(.77,0,.18,1);
-  }
-  .skill-card:hover { background: var(--bg3); }
-  .skill-card:hover::before { transform: scaleX(1); }
-  .skill-num {
-    font-size: .6rem;
-    font-weight: 700;
-    letter-spacing: .2em;
-    color: var(--gold);
-    opacity: .5;
-    margin-bottom: 12px;
-  }
-  .skill-title {
-    font-size: .9rem;
-    font-weight: 600;
-    color: var(--white);
-    margin-bottom: 10px;
-    line-height: 1.3;
-  }
-  .skill-desc {
-    font-size: .78rem;
-    color: var(--gray);
-    line-height: 1.65;
-  }
+/* REKOMENDACJE */
+#rekomendacje{padding:clamp(80px,12vw,160px) 6vw;overflow:hidden;background:var(--bg2)}
+.rec-top{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:64px;flex-wrap:wrap;gap:32px}
+.li-stats{display:flex;gap:32px;flex-wrap:wrap}
+.li-s{border-left:1px solid rgba(255,255,255,.06);padding-left:20px}
+.li-n{font-size:1.4rem;font-weight:700;letter-spacing:-.03em;color:var(--white);display:block}
+.li-g{font-size:.58rem;font-weight:600;letter-spacing:.12em;color:var(--gold);margin:2px 0;display:block}
+.li-l{font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gray);display:block}
+.rec-mq-wrap{overflow:hidden;mask-image:linear-gradient(90deg,transparent,black 4%,black 96%,transparent);-webkit-mask-image:linear-gradient(90deg,transparent,black 4%,black 96%,transparent)}
+.rec-mq{display:flex;gap:20px;animation:mq 55s linear infinite;width:max-content}
+.rec-mq:hover{animation-play-state:paused}
+.rec-card{width:340px;flex-shrink:0;background:var(--bg3);border:1px solid rgba(255,255,255,.05);padding:28px;position:relative;transition:border-color .3s,transform .4s;cursor:default}
+.rec-card:hover{border-color:rgba(200,169,106,.2);transform:translateY(-6px)}
+.rec-stars{color:var(--gold);font-size:.65rem;letter-spacing:3px;margin-bottom:16px}
+.rec-q{font-size:.8rem;color:var(--gray);line-height:1.75;margin-bottom:20px;font-style:italic}
+.rec-auth{display:flex;align-items:center;gap:12px}
+.rec-av{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--gold2),#333);display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;color:var(--white);flex-shrink:0}
+.rec-nm{font-size:.82rem;font-weight:600;color:var(--white)}
+.rec-tl{font-size:.7rem;color:var(--gray)}
+.rec-li{position:absolute;top:20px;right:20px;font-size:.55rem;letter-spacing:.15em;text-transform:uppercase;color:var(--gray2);background:rgba(255,255,255,.03);padding:4px 8px;border:1px solid rgba(255,255,255,.05)}
 
-  /* WSPOLPRACA */
-  #wspolpraca {
-    padding: 140px 10vw;
-    background: var(--bg2);
-  }
-  .collab-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 2px;
-    margin-top: 60px;
-    background: rgba(255,255,255,.04);
-  }
-  .collab-card {
-    background: var(--bg2);
-    padding: 56px 48px;
-    position: relative;
-    overflow: hidden;
-    transition: background .4s;
-  }
-  .collab-card::after {
-    content: '';
-    position: absolute;
-    bottom: 0; left: 0;
-    width: 0; height: 1px;
-    background: var(--gold);
-    transition: width .5s cubic-bezier(.77,0,.18,1);
-  }
-  .collab-card:hover { background: var(--bg3); }
-  .collab-card:hover::after { width: 100%; }
-  .collab-icon {
-    font-size: 2rem;
-    margin-bottom: 24px;
-    display: block;
-    filter: grayscale(100%);
-    transition: filter .3s;
-  }
-  .collab-card:hover .collab-icon { filter: grayscale(0%); }
-  .collab-title {
-    font-size: 1.2rem;
-    font-weight: 700;
-    margin-bottom: 16px;
-    color: var(--white);
-  }
-  .collab-desc {
-    font-size: .85rem;
-    color: var(--gray);
-    line-height: 1.8;
-  }
+/* KONTAKT */
+#kontakt{padding:clamp(80px,12vw,160px) 6vw;display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:start}
+.ct-big{font-size:clamp(2.2rem,5vw,4rem);font-weight:700;letter-spacing:-.04em;line-height:1.05;margin-bottom:28px}
+.ct-big em{color:var(--gold);font-style:normal}
+.ct-desc{font-size:.85rem;color:var(--gray);line-height:1.85;max-width:380px;margin-bottom:40px}
+.ct-info{display:flex;flex-direction:column;gap:14px}
+.ct-row{display:flex;align-items:center;gap:14px;font-size:.82rem;color:var(--gray);transition:color .3s}
+.ct-row:hover{color:var(--white)}
+.ct-row-dot{width:4px;height:4px;background:var(--gold);border-radius:50%;flex-shrink:0}
+.ct-form{display:flex;flex-direction:column;gap:12px}
+.f-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.f-field input,.f-field textarea{width:100%;background:var(--bg3);border:1px solid rgba(255,255,255,.06);color:var(--white);font-family:var(--font);font-size:.8rem;padding:16px 18px;outline:none;transition:border-color .3s,background .3s;resize:none}
+.f-field textarea{height:120px}
+.f-field input::placeholder,.f-field textarea::placeholder{color:var(--gray2);font-size:.75rem;letter-spacing:.04em}
+.f-field input:focus,.f-field textarea:focus{border-color:rgba(200,169,106,.35);background:var(--bg4)}
+.f-submit{padding:16px 36px;background:var(--white);color:var(--bg);font-family:var(--font);font-size:.72rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;border:none;cursor:none;position:relative;overflow:hidden;align-self:flex-start;transition:color .4s}
+.f-submit::before{content:'';position:absolute;inset:0;background:var(--gold);transform:translateX(-102%);transition:transform .45s cubic-bezier(.77,0,.18,1)}
+.f-submit:hover::before{transform:translateX(0)}
+.f-submit span{position:relative;z-index:1}
 
-  /* DOSWIADCZENIE */
-  #doswiadczenie {
-    padding: 140px 10vw;
-  }
-  .timeline {
-    margin-top: 80px;
-    position: relative;
-  }
-  .timeline::before {
-    content: '';
-    position: absolute;
-    left: 140px;
-    top: 0; bottom: 0;
-    width: 1px;
-    background: linear-gradient(to bottom, transparent, rgba(255,255,255,.1) 10%, rgba(255,255,255,.1) 90%, transparent);
-  }
-  .timeline-item {
-    display: grid;
-    grid-template-columns: 140px 1fr;
-    gap: 0 48px;
-    margin-bottom: 64px;
-    position: relative;
-    opacity: 0;
-    transform: translateX(-20px);
-  }
-  .timeline-item::before {
-    content: '';
-    position: absolute;
-    left: 136px;
-    top: 8px;
-    width: 9px; height: 9px;
-    border-radius: 50%;
-    background: var(--bg);
-    border: 2px solid var(--gold2);
-    transition: background .3s, border-color .3s, box-shadow .3s;
-  }
-  .timeline-item:hover::before {
-    background: var(--gold);
-    border-color: var(--gold);
-    box-shadow: 0 0 16px rgba(201,169,110,.5);
-  }
-  .timeline-date {
-    text-align: right;
-    padding-right: 0;
-  }
-  .timeline-duration {
-    font-size: .65rem;
-    font-weight: 700;
-    letter-spacing: .15em;
-    text-transform: uppercase;
-    color: var(--gold);
-    display: block;
-    margin-bottom: 4px;
-  }
-  .timeline-period {
-    font-size: .7rem;
-    color: var(--gray2);
-  }
-  .timeline-content {
-    padding-bottom: 32px;
-    border-bottom: 1px solid rgba(255,255,255,.04);
-  }
-  .timeline-company {
-    font-size: .65rem;
-    font-weight: 700;
-    letter-spacing: .2em;
-    text-transform: uppercase;
-    color: var(--gray2);
-    margin-bottom: 6px;
-  }
-  .timeline-role {
-    font-size: 1.2rem;
-    font-weight: 700;
-    color: var(--white);
-    margin-bottom: 16px;
-    line-height: 1.2;
-  }
-  .timeline-list {
-    list-style: none;
-  }
-  .timeline-list li {
-    font-size: .83rem;
-    color: var(--gray);
-    line-height: 1.7;
-    padding: 4px 0;
-    padding-left: 16px;
-    position: relative;
-  }
-  .timeline-list li::before {
-    content: '→';
-    position: absolute;
-    left: 0;
-    color: var(--gold);
-    font-size: .7rem;
-  }
-  .timeline-badge {
-    display: inline-block;
-    margin-top: 12px;
-    padding: 4px 12px;
-    font-size: .65rem;
-    font-weight: 600;
-    letter-spacing: .1em;
-    text-transform: uppercase;
-    background: rgba(201,169,110,.1);
-    border: 1px solid rgba(201,169,110,.2);
-    color: var(--gold);
-  }
+/* FOOTER */
+footer{position:relative;z-index:1;background:var(--bg);border-top:1px solid rgba(255,255,255,.04);padding:40px 6vw;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px}
+.ft-logo{font-size:.75rem;font-weight:700;letter-spacing:.3em;text-transform:uppercase}
+footer p{font-size:.65rem;color:var(--gray2);letter-spacing:.08em}
 
-  /* REKOMENDACJE */
-  #rekomendacje {
-    padding: 140px 10vw;
-    background: var(--bg2);
-    overflow: hidden;
-  }
-  .rec-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
-    margin-bottom: 80px;
-  }
-  .linkedin-stats {
-    display: flex;
-    gap: 32px;
-  }
-  .lstat {
-    text-align: right;
-  }
-  .lstat-num {
-    font-size: 1.5rem;
-    font-weight: 700;
-    letter-spacing: -.03em;
-    color: var(--white);
-    display: block;
-  }
-  .lstat-label {
-    font-size: .65rem;
-    letter-spacing: .15em;
-    text-transform: uppercase;
-    color: var(--gray);
-    display: block;
-  }
-  .rec-track-wrap {
-    overflow: hidden;
-    mask-image: linear-gradient(90deg, transparent, black 5%, black 95%, transparent);
-    -webkit-mask-image: linear-gradient(90deg, transparent, black 5%, black 95%, transparent);
-  }
-  .rec-track {
-    display: flex;
-    gap: 24px;
-    animation: recSlide 50s linear infinite;
-    width: max-content;
-  }
-  .rec-track:hover { animation-play-state: paused; }
-  @keyframes recSlide {
-    from { transform: translateX(0); }
-    to { transform: translateX(-50%); }
-  }
-  .rec-card {
-    width: 360px;
-    flex-shrink: 0;
-    background: var(--bg3);
-    border: 1px solid rgba(255,255,255,.05);
-    padding: 32px;
-    position: relative;
-    transition: border-color .3s, transform .3s;
-  }
-  .rec-card:hover {
-    border-color: rgba(201,169,110,.2);
-    transform: translateY(-4px);
-  }
-  .rec-quote {
-    font-size: .85rem;
-    color: var(--gray);
-    line-height: 1.75;
-    margin-bottom: 24px;
-    font-style: italic;
-  }
-  .rec-author {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-  .rec-avatar {
-    width: 36px; height: 36px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, var(--gold2), var(--gray2));
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: .8rem;
-    font-weight: 700;
-    color: var(--white);
-    flex-shrink: 0;
-  }
-  .rec-name {
-    font-size: .85rem;
-    font-weight: 600;
-    color: var(--white);
-  }
-  .rec-title {
-    font-size: .72rem;
-    color: var(--gray);
-  }
-  .rec-stars {
-    position: absolute;
-    top: 24px; right: 24px;
-    color: var(--gold);
-    font-size: .7rem;
-    letter-spacing: 2px;
-  }
+/* REVEAL */
+.rv{opacity:0;transform:translateY(24px);transition:opacity .7s,transform .7s}
+.rl{opacity:0;transform:translateX(-32px);transition:opacity .7s,transform .7s}
+.rr{opacity:0;transform:translateX(32px);transition:opacity .7s,transform .7s}
+.rv.vis,.rl.vis,.rr.vis{opacity:1;transform:none}
 
-  /* KONTAKT */
-  #kontakt {
-    padding: 140px 10vw;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 80px;
-  }
-  .contact-big {
-    font-size: clamp(2rem, 4vw, 3.5rem);
-    font-weight: 700;
-    letter-spacing: -.03em;
-    line-height: 1.1;
-    margin-bottom: 32px;
-  }
-  .contact-big span { color: var(--gold); }
-  .contact-info {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    margin-top: 40px;
-  }
-  .contact-info-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    font-size: .85rem;
-    color: var(--gray);
-  }
-  .contact-info-item .dot {
-    width: 4px; height: 4px;
-    background: var(--gold);
-    border-radius: 50%;
-    flex-shrink: 0;
-  }
-  .contact-form {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-  }
-  .form-field {
-    position: relative;
-  }
-  .form-field input,
-  .form-field textarea {
-    width: 100%;
-    background: var(--bg2);
-    border: 1px solid rgba(255,255,255,.08);
-    color: var(--white);
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: .85rem;
-    padding: 18px 20px;
-    outline: none;
-    transition: border-color .3s;
-    resize: none;
-  }
-  .form-field input:focus,
-  .form-field textarea:focus {
-    border-color: rgba(201,169,110,.4);
-  }
-  .form-field input::placeholder,
-  .form-field textarea::placeholder {
-    color: var(--gray2);
-    font-size: .78rem;
-    letter-spacing: .05em;
-  }
-  .form-field textarea { height: 140px; }
-  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-  .btn-submit {
-    padding: 18px 40px;
-    background: var(--white);
-    color: var(--bg);
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: .8rem;
-    font-weight: 700;
-    letter-spacing: .15em;
-    text-transform: uppercase;
-    border: none;
-    cursor: none;
-    transition: background .3s;
-    position: relative;
-    overflow: hidden;
-    align-self: flex-start;
-  }
-  .btn-submit::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: var(--gold);
-    transform: translateX(-101%);
-    transition: transform .4s cubic-bezier(.77,0,.18,1);
-  }
-  .btn-submit:hover::after { transform: translateX(0); }
-  .btn-submit span { position: relative; z-index: 1; }
-
-  /* FOOTER */
-  footer {
-    background: var(--bg);
-    border-top: 1px solid rgba(255,255,255,.04);
-    padding: 40px 10vw;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    position: relative;
-    z-index: 1;
-  }
-  footer p {
-    font-size: .7rem;
-    color: var(--gray2);
-    letter-spacing: .1em;
-  }
-  .footer-logo {
-    font-size: .85rem;
-    font-weight: 700;
-    letter-spacing: .15em;
-    text-transform: uppercase;
-    color: var(--white);
-  }
-
-  /* REVEAL ANIMATIONS */
-  .reveal { opacity: 0; transform: translateY(30px); }
-  .reveal-left { opacity: 0; transform: translateX(-40px); }
-  .reveal-right { opacity: 0; transform: translateX(40px); }
-
-  /* NOISE OVERLAY */
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    z-index: 2;
-    pointer-events: none;
-    opacity: .025;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  }
-
-  /* HORIZONTAL SCROLL SECTION for skills */
-  .h-scroll-wrap {
-    overflow-x: auto;
-    scrollbar-width: none;
-    -webkit-overflow-scrolling: touch;
-  }
-  .h-scroll-wrap::-webkit-scrollbar { display: none; }
-
-  /* MOBILE */
-  @media (max-width: 900px) {
-    nav { padding: 20px 24px; }
-    .nav-links { display: none; }
-    #hero { padding: 0 24px; }
-    #about { grid-template-columns: 1fr; padding: 80px 24px; }
-    .about-image-wrap { max-height: 400px; }
-    .stats-bar { grid-template-columns: repeat(2, 1fr); padding: 60px 24px; }
-    #kompetencje, #wspolpraca, #doswiadczenie, #rekomendacje { padding: 80px 24px; }
-    .skills-grid { grid-template-columns: 1fr 1fr; }
-    .collab-grid { grid-template-columns: 1fr; }
-    .timeline::before { left: 80px; }
-    .timeline-item { grid-template-columns: 80px 1fr; gap: 0 24px; }
-    .timeline-item::before { left: 76px; }
-    #kontakt { grid-template-columns: 1fr; padding: 80px 24px; }
-    .form-row { grid-template-columns: 1fr; }
-    footer { flex-direction: column; gap: 16px; text-align: center; padding: 32px 24px; }
-    .rec-header { flex-direction: column; gap: 32px; align-items: flex-start; }
-    .linkedin-stats { flex-wrap: wrap; justify-content: flex-start; }
-    .lstat { text-align: left; }
-  }
-  @media (max-width: 600px) {
-    .skills-grid { grid-template-columns: 1fr; }
-    .hero-btns { flex-direction: column; }
-  }
-
-  /* LOADING SCREEN */
-  #loader {
-    position: fixed;
-    inset: 0;
-    z-index: 9000;
-    background: var(--bg);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-    gap: 24px;
-  }
-  .loader-name {
-    font-size: 1.2rem;
-    font-weight: 700;
-    letter-spacing: .3em;
-    text-transform: uppercase;
-    color: var(--white);
-  }
-  .loader-bar-wrap {
-    width: 200px;
-    height: 1px;
-    background: rgba(255,255,255,.1);
-    position: relative;
-    overflow: hidden;
-  }
-  .loader-bar {
-    position: absolute;
-    top: 0; left: 0;
-    height: 100%;
-    background: var(--gold);
-    width: 0;
-    transition: width .05s linear;
-  }
-  .loader-pct {
-    font-size: .65rem;
-    letter-spacing: .2em;
-    color: var(--gray2);
-  }
+/* MOBILE */
+@media(max-width:960px){
+  .nav-links{display:none}
+  .nav-ham{display:flex}
+  #about{grid-template-columns:1fr}
+  .about-img{max-height:380px}
+  .stats{grid-template-columns:1fr 1fr}
+  .sk-grid{grid-template-columns:1fr 1fr}
+  .col-grid{grid-template-columns:1fr}
+  .tl{padding-left:100px}
+  .tl::before{left:72px}
+  .tl-meta{left:-100px;width:64px}
+  .tl-dot{left:-32px}
+  .tl-per{display:none}
+  #kontakt{grid-template-columns:1fr}
+  .f-row{grid-template-columns:1fr}
+  .rec-top{flex-direction:column;align-items:flex-start}
+  footer{flex-direction:column;text-align:center}
+}
+@media(max-width:600px){
+  .sk-grid{grid-template-columns:1fr}
+  .hero-ctas{flex-direction:column}
+  .stats{grid-template-columns:1fr 1fr}
+  .pillars{grid-template-columns:1fr}
+  .li-stats{gap:16px}
+}
 </style>
 </head>
 <body>
 
-<!-- LOADER -->
-<div id="loader">
-  <div class="loader-name">Michał Ćwikła</div>
-  <div class="loader-bar-wrap"><div class="loader-bar" id="loader-bar"></div></div>
-  <div class="loader-pct" id="loader-pct">0%</div>
-</div>
+<div id="loader"><div class="ld-n">M·Ć</div><div class="ld-bw"><div class="ld-b" id="ld-b"></div></div><div class="ld-p" id="ld-p">0%</div></div>
 
-<!-- CURSOR -->
-<div class="cursor" id="cursor"></div>
-<div class="cursor-follower" id="cursor-follower"></div>
+<div class="cur" id="cur"></div>
+<div class="cur-ring" id="cur-ring"></div>
 
-<!-- CANVAS -->
 <canvas id="bg-canvas"></canvas>
 
 <!-- NAV -->
 <nav id="nav">
-  <a href="#hero" class="nav-logo">MC</a>
+  <a href="#hero" class="nav-logo">Michał Ćwikła</a>
   <ul class="nav-links">
     <li><a href="#about">O mnie</a></li>
     <li><a href="#kompetencje">Kompetencje</a></li>
@@ -996,583 +280,560 @@
     <li><a href="#rekomendacje">Rekomendacje</a></li>
     <li><a href="#kontakt">Kontakt</a></li>
   </ul>
+  <div class="nav-ham" id="ham"><span></span><span></span><span></span></div>
 </nav>
+<div class="mob-menu" id="mob-menu">
+  <a href="#about" class="mob-link">O mnie</a>
+  <a href="#kompetencje" class="mob-link">Kompetencje</a>
+  <a href="#wspolpraca" class="mob-link">Współpraca</a>
+  <a href="#doswiadczenie" class="mob-link">Doświadczenie</a>
+  <a href="#rekomendacje" class="mob-link">Rekomendacje</a>
+  <a href="#kontakt" class="mob-link">Kontakt</a>
+</div>
 
 <!-- HERO -->
 <section id="hero">
+  <div class="hero-bg-text">MC</div>
   <div class="hero-tag">Sprzedaż · Procesy · Automatyzacja</div>
-  <h1 class="hero-name">
-    <span class="line"><span class="word">Michał</span></span>
-    <span class="line"><span class="word">Ćwikła</span></span>
+  <h1 class="hero-h1">
+    <span class="line"><span class="w">Michał</span></span>
+    <span class="line"><span class="w">Ćwikła</span></span>
   </h1>
-  <p class="hero-sub">Łączę sprzedaż, technologię i komunikację, tworząc rozwiązania zwiększające wyniki i skalowalność biznesu.</p>
-  <div class="hero-btns">
-    <a href="#kontakt" class="btn-primary"><span>Porozmawiajmy</span></a>
-    <a href="#doswiadczenie" class="btn-outline">Zobacz doświadczenie</a>
+  <p class="hero-sub">Łączę sprzedaż, technologię i komunikację — tworząc rozwiązania, które realnie zwiększają wyniki i skalowalność biznesu.</p>
+  <div class="hero-ctas">
+    <a href="#kontakt" class="btn btn-w mag"><span>Porozmawiajmy</span></a>
+    <a href="#doswiadczenie" class="btn btn-b mag"><span>Zobacz doświadczenie</span></a>
   </div>
-  <div class="hero-scroll-hint">
-    <div class="line-h"></div>
-    <span>Scroll</span>
-  </div>
+  <div class="hero-scroll" id="hero-scroll"><span class="sv">Scroll</span><div class="sa"></div></div>
 </section>
 
 <!-- ABOUT -->
 <section id="about">
-  <div class="about-image-wrap reveal-left">
-    <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&q=80&grayscale" alt="Michał Ćwikła" onerror="this.style.background='#1a1a1a'">
-    <div class="about-image-frame"></div>
+  <div class="about-img rl">
+    <img src="https://images.unsplash.com/photo-1560250097-0b93528c311a?w=800&q=80" alt="Michał Ćwikła" onerror="this.style.display='none';this.parentElement.style.background='#111'">
+    <div class="about-img-border"></div>
+    <div class="about-img-tag"><span>Gdańsk, Polska</span><strong>Michał Ćwikła</strong></div>
   </div>
-  <div class="about-text">
-    <div class="section-label reveal">O mnie</div>
-    <h2 class="section-title reveal">Sprzedaż + Wdrożenie + Operacja</h2>
-    <div class="divider reveal"></div>
-    <p class="reveal">Prowadzę sprzedaż end-to-end, buduję i porządkuję procesy, mam doświadczenie liderskie i pracuję z no-code oraz AI. Łączę sprzedaż z wdrożeniem i operacją — od Allianz, przez Caterings, po własne rozwiązania CRM.</p>
-    <p class="reveal">Moje podejście to zawsze: <strong>konkretny wynik, mierzalny efekt i realna wartość dla biznesu.</strong></p>
-    <div class="about-pillars">
-      <div class="pillar">
-        <div class="pillar-icon"></div>
-        <div class="pillar-text"><strong>Budowa systemów CRM</strong> opartych o AI i no-code</div>
-      </div>
-      <div class="pillar">
-        <div class="pillar-icon"></div>
-        <div class="pillar-text"><strong>Automatyzacja procesów</strong> sprzedażowych i operacyjnych</div>
-      </div>
-      <div class="pillar">
-        <div class="pillar-icon"></div>
-        <div class="pillar-text"><strong>Iteracyjne podejście:</strong> testowanie → optymalizacja → wdrożenie</div>
-      </div>
-      <div class="pillar">
-        <div class="pillar-icon"></div>
-        <div class="pillar-text"><strong>Łączenie sprzedaży,</strong> produktu, technologii i komunikacji</div>
-      </div>
+  <div class="about-body">
+    <div class="s-label rv">O mnie</div>
+    <h2 class="s-title rv">Sprzedaż + Wdrożenie<br>+ Operacja</h2>
+    <div class="s-div rv"></div>
+    <p class="rv">Prowadzę sprzedaż end-to-end, buduję i porządkuję procesy, mam doświadczenie liderskie i pracuję z no-code oraz AI. Łączę sprzedaż z wdrożeniem i operacją — od Allianz, przez Caterings, po własne rozwiązania CRM.</p>
+    <p class="rv">Moje podejście: <strong>konkretny wynik, mierzalny efekt i realna wartość dla biznesu.</strong> Upraszczam procesy, automatyzuję działania i buduję systemy, które realnie zwiększają efektywność.</p>
+    <div class="pillars rv">
+      <div class="pillar"><div class="pillar-dot"></div><div class="pillar-t">Budowa systemów CRM</div><div class="pillar-s">AI + no-code, skrojone na miarę</div></div>
+      <div class="pillar"><div class="pillar-dot"></div><div class="pillar-t">Automatyzacja procesów</div><div class="pillar-s">Sprzedażowych i operacyjnych</div></div>
+      <div class="pillar"><div class="pillar-dot"></div><div class="pillar-t">Podejście iteracyjne</div><div class="pillar-s">Test → Optymalizacja → Wdrożenie</div></div>
+      <div class="pillar"><div class="pillar-dot"></div><div class="pillar-t">Łączenie dziedzin</div><div class="pillar-s">Sprzedaż + Produkt + Tech + Komm.</div></div>
     </div>
   </div>
 </section>
 
 <!-- STATS -->
-<div class="stats-bar">
-  <div class="stat-item reveal">
-    <span class="stat-num" data-target="6518">0<span>+</span></span>
-    <span class="stat-label">Obserwujących LinkedIn</span>
-  </div>
-  <div class="stat-item reveal">
-    <span class="stat-num" data-target="82899">0<span>+</span></span>
-    <span class="stat-label">Zasięgów w 365 dni</span>
-  </div>
-  <div class="stat-item reveal">
-    <span class="stat-num" data-target="51">0<span>+</span></span>
-    <span class="stat-label">Kompetencji</span>
-  </div>
-  <div class="stat-item reveal">
-    <span class="stat-num" data-target="500">0<span>+</span></span>
-    <span class="stat-label">Narzędzi AI w bazie</span>
-  </div>
+<div class="stats">
+  <div class="st rv"><span class="st-n" data-t="6518">0<em>+</em></span><span class="st-g">+56.2% YoY</span><span class="st-l">Obserwujących LinkedIn</span></div>
+  <div class="st rv"><span class="st-n" data-t="82899">0<em>+</em></span><span class="st-g">+124.9% YoY</span><span class="st-l">Zasięgów w 365 dni</span></div>
+  <div class="st rv"><span class="st-n" data-t="51">0<em>+</em></span><span class="st-g">od Sprzedaży po AI</span><span class="st-l">Kompetencji</span></div>
+  <div class="st rv"><span class="st-n" data-t="500">0<em>+</em></span><span class="st-g">aktywne stosowanie 100+</span><span class="st-l">Narzędzi AI w bazie</span></div>
 </div>
 
 <!-- KOMPETENCJE -->
 <section id="kompetencje">
-  <div class="skills-header">
+  <div class="k-head">
     <div>
-      <div class="section-label reveal">Kompetencje</div>
-      <h2 class="section-title reveal">51 obszarów ekspertyzy</h2>
+      <div class="s-label rv">Kompetencje</div>
+      <h2 class="s-title rv">Obszary ekspertyzy</h2>
     </div>
+    <div class="k-count rv">51</div>
   </div>
-
-  <!-- Marquee 1 -->
-  <div class="marquee-wrap">
-    <div class="marquee-track" id="marquee1"></div>
+  <div class="k-filters" id="k-filters">
+    <button class="k-f on" data-cat="all">Wszystkie</button>
+    <button class="k-f" data-cat="sprzedaz">Sprzedaż</button>
+    <button class="k-f" data-cat="procesy">Procesy</button>
+    <button class="k-f" data-cat="ai">AI & No-code</button>
+    <button class="k-f" data-cat="komunikacja">Komunikacja</button>
+    <button class="k-f" data-cat="dane">Dane & Analityka</button>
+    <button class="k-f" data-cat="leadership">Leadership</button>
   </div>
-  <!-- Marquee 2 -->
-  <div class="marquee-wrap">
-    <div class="marquee-track reverse" id="marquee2"></div>
-  </div>
-
-  <!-- GRID - top skills -->
-  <div class="skills-grid" id="skills-grid"></div>
+  <div class="mq-wrap"><div class="mq" id="mq1"></div></div>
+  <div class="mq-wrap"><div class="mq rev" id="mq2"></div></div>
+  <div class="sk-grid" id="sk-grid"></div>
 </section>
 
 <!-- WSPOLPRACA -->
 <section id="wspolpraca">
-  <div class="section-label reveal">Współpraca</div>
-  <h2 class="section-title reveal">Jak mogę pomóc?</h2>
-  <div class="divider reveal"></div>
-  <div class="collab-grid">
-    <div class="collab-card reveal-left">
-      <span class="collab-icon">🏢</span>
-      <h3 class="collab-title">Dla pracodawców</h3>
-      <p class="collab-desc">Budowa procesu sprzedaży, wdrożenie CRM/no-code/AI, rozwój komunikacji handlowej, standaryzacja pracy zespołu, skalowanie lead generation.</p>
+  <div class="s-label rv">Współpraca</div>
+  <h2 class="s-title rv">Jak mogę pomóc?</h2>
+  <div class="s-div rv"></div>
+  <div class="col-grid">
+    <div class="col-c rl">
+      <span class="col-icon">🏢</span>
+      <h3 class="col-t">Dla pracodawców</h3>
+      <p class="col-d">Budowa procesu sprzedaży, wdrożenie CRM/no-code/AI, rozwój komunikacji handlowej, standaryzacja pracy zespołu, skalowanie lead generation. Dołączam tam, gdzie wynik robi się razem — jako partner operacyjny, nie tylko wykonawca.</p>
+      <div class="col-arrow">→</div>
     </div>
-    <div class="collab-card reveal-right">
-      <span class="collab-icon">🤝</span>
-      <h3 class="collab-title">Dla partnerów biznesowych</h3>
-      <p class="collab-desc">Współpraca przy sprzedaży, wdrożeniach CRM, automatyzacji AI, budowie procesów lead generation i komunikacji z klientem.</p>
+    <div class="col-c rr">
+      <span class="col-icon">🤝</span>
+      <h3 class="col-t">Dla partnerów biznesowych</h3>
+      <p class="col-d">Współpraca przy sprzedaży, wdrożeniach CRM, automatyzacji AI, budowie procesów lead generation i komunikacji z klientem. Szukam projektów z realnym wpływem — gdzie można zmierzyć efekt i skalować wynik.</p>
+      <div class="col-arrow">→</div>
     </div>
   </div>
 </section>
 
 <!-- DOSWIADCZENIE -->
 <section id="doswiadczenie">
-  <div class="section-label reveal">Doświadczenie</div>
-  <h2 class="section-title reveal">Ścieżka kariery</h2>
-  <div class="divider reveal"></div>
-  <div class="timeline" id="timeline"></div>
+  <div class="s-label rv">Doświadczenie</div>
+  <h2 class="s-title rv">Ścieżka kariery</h2>
+  <div class="s-div rv"></div>
+  <div class="tl" id="tl"></div>
 </section>
 
 <!-- REKOMENDACJE -->
 <section id="rekomendacje">
-  <div class="rec-header">
+  <div class="rec-top">
     <div>
-      <div class="section-label reveal">Rekomendacje</div>
-      <h2 class="section-title reveal">Co mówią klienci</h2>
+      <div class="s-label rv">Rekomendacje</div>
+      <h2 class="s-title rv">Co mówią klienci</h2>
     </div>
-    <div class="linkedin-stats reveal-right">
-      <div class="lstat">
-        <span class="lstat-num">6 518</span>
-        <span class="lstat-label">Obserwujących</span>
-      </div>
-      <div class="lstat">
-        <span class="lstat-num">+56.2%</span>
-        <span class="lstat-label">Wzrost YoY</span>
-      </div>
-      <div class="lstat">
-        <span class="lstat-num">82 899</span>
-        <span class="lstat-label">Zasięgów</span>
-      </div>
+    <div class="li-stats rr">
+      <div class="li-s"><span class="li-n">6 518</span><span class="li-g">+56.2%</span><span class="li-l">Obserwujących</span></div>
+      <div class="li-s"><span class="li-n">82 899</span><span class="li-g">+124.9%</span><span class="li-l">Zasięgów</span></div>
+      <div class="li-s"><span class="li-n">11 276</span><span class="li-g">Interakcji</span><span class="li-l">Zaangażowanie</span></div>
     </div>
   </div>
-  <div class="rec-track-wrap">
-    <div class="rec-track" id="rec-track"></div>
-  </div>
+  <div class="rec-mq-wrap"><div class="rec-mq" id="rec-mq"></div></div>
 </section>
 
 <!-- KONTAKT -->
 <section id="kontakt">
   <div>
-    <div class="section-label reveal">Kontakt</div>
-    <h2 class="contact-big reveal">Porozmawiajmy<br>o <span>współpracy</span></h2>
-    <p class="reveal" style="font-size:.85rem;color:var(--gray);line-height:1.8;max-width:380px;">Jeśli szukasz kogoś, kto łączy sprzedaż z technologią — napisz lub zadzwoń.</p>
-    <div class="contact-info reveal">
-      <div class="contact-info-item"><div class="dot"></div>Gdańsk 80-266, al. Grunwaldzka 163</div>
-      <div class="contact-info-item"><div class="dot"></div>michal.cw2891@gmail.com</div>
-      <div class="contact-info-item"><div class="dot"></div>LinkedIn: Michał Ćwikła</div>
+    <div class="s-label rv">Kontakt</div>
+    <h2 class="ct-big rv">Porozmawiajmy<br>o <em>współpracy</em></h2>
+    <p class="ct-desc rv">Jeśli szukasz kogoś, kto łączy sprzedaż z technologią i realnie wpływa na wynik — napisz lub zadzwoń. Odpiszę w ciągu 24h.</p>
+    <div class="ct-info rv">
+      <div class="ct-row"><div class="ct-row-dot"></div>Gdańsk, al. Grunwaldzka 163 (1p.)</div>
+      <div class="ct-row"><div class="ct-row-dot"></div>michal.cw2891@gmail.com</div>
+      <div class="ct-row"><div class="ct-row-dot"></div>LinkedIn: Michał Ćwikła</div>
+      <div class="ct-row"><div class="ct-row-dot"></div>Dostępny do współpracy od zaraz</div>
     </div>
   </div>
-  <div class="contact-form reveal-right">
-    <div class="form-row">
-      <div class="form-field"><input type="text" placeholder="Imię i nazwisko"></div>
-      <div class="form-field"><input type="tel" placeholder="Telefon"></div>
+  <form class="ct-form rr" onsubmit="return false">
+    <div class="f-row">
+      <div class="f-field"><input type="text" placeholder="Imię i nazwisko" required></div>
+      <div class="f-field"><input type="tel" placeholder="Telefon"></div>
     </div>
-    <div class="form-field"><input type="email" placeholder="E-mail"></div>
-    <div class="form-field"><input type="text" placeholder="Firma (opcjonalnie)"></div>
-    <div class="form-field"><textarea placeholder="Wiadomość..."></textarea></div>
-    <button class="btn-submit"><span>Wyślij wiadomość</span></button>
-  </div>
+    <div class="f-field"><input type="email" placeholder="E-mail" required></div>
+    <div class="f-field"><input type="text" placeholder="Firma (opcjonalnie)"></div>
+    <div class="f-field"><textarea placeholder="Opisz czego szukasz..."></textarea></div>
+    <button class="f-submit mag"><span>Wyślij wiadomość</span></button>
+  </form>
 </section>
 
-<!-- FOOTER -->
 <footer>
-  <span class="footer-logo">Michał Ćwikła</span>
-  <p>© 2025 Michał Ćwikła. Wszystkie prawa zastrzeżone.</p>
-  <p>Gdańsk · Sprzedaż · Procesy · AI</p>
+  <span class="ft-logo">Michał Ćwikła</span>
+  <p>Sprzedaż · Procesy · Automatyzacja · AI</p>
+  <p>© 2025 Michał Ćwikła. Wszelkie prawa zastrzeżone.</p>
 </footer>
 
 <script>
-// DATA
-const skills = [
-  { n:1,  t:"Projektowanie i optymalizacja procesów sprzedażowych", d:"Mapowanie, analiza i przebudowa procesów w celu skrócenia czasu cyklu i zwiększenia konwersji." },
-  { n:2,  t:"Budowa i skalowanie lejków sprzedażowych", d:"Projektowanie lejków od etapu pozyskania leada do zamknięcia sprzedaży." },
-  { n:3,  t:"Sprzedaż bezpośrednia, telefoniczna i online", d:"Prowadzenie sprzedaży w trzech modelach: terenowym, telefonicznym i zdalnym." },
-  { n:4,  t:"Prowadzenie procesu sprzedaży end-to-end", d:"Obsługa klienta od pierwszego kontaktu po podpisanie umowy i obsługę posprzedażową." },
-  { n:5,  t:"Negocjacje i domykanie sprzedaży", d:"Techniki negocjacyjne, zarządzanie obiekcjami i skuteczne zamykanie procesu sprzedaży." },
-  { n:6,  t:"Pozyskiwanie klientów B2B i B2C", d:"Budowanie pipeline'u przez outreach online, LinkedIn, telefon oraz kontakt bezpośredni." },
-  { n:7,  t:"Analiza rynku i konkurencji", d:"Badanie otoczenia konkurencyjnego, trendów rynkowych i pozycji własnej oferty." },
-  { n:8,  t:"Identyfikacja luk produktowych", d:"Wykrywanie niezaspokojonych potrzeb klientów i obszarów bez skutecznych rozwiązań." },
-  { n:9,  t:"Tworzenie ofert opartych na realnym popycie", d:"Konstruowanie propozycji wartości na podstawie rzeczywistych potrzeb klientów." },
-  { n:10, t:"Koordynacja procesu go-to-market", d:"Planowanie i wdrażanie strategii wprowadzenia produktu — od pozycjonowania po sprzedaże." },
-  { n:11, t:"Tworzenie i rozwój produktów (FMCG / SaaS / usługi)", d:"Projektowanie produktów w trzech kategoriach: FMCG, SaaS i usługi profesjonalne." },
-  { n:12, t:"Strategia komunikacji i content sprzedażowy", d:"Budowanie spójnej narracji marki i treści aktywnie wspierających sprzedaż." },
-  { n:25, t:"Budowa systemów CRM (no-code, AI)", d:"Projektowanie i wdrażanie systemów zarządzania klientami z wykorzystaniem narzędzi no-code i AI." },
-  { n:26, t:"Automatyzacja procesów sprzedażowych i operacyjnych", d:"Eliminowanie ręcznych czynności przez automatyczne przepływy pracy." },
-  { n:27, t:"Projektowanie narzędzi zwiększających efektywność", d:"Tworzenie dedykowanych rozwiązań szybszych niż dostępne standardy rynkowe." },
-  { n:28, t:"Wykorzystanie AI w sprzedaży, marketingu i operacjach", d:"Praktyczne wdrażanie narzędzi AI do generowania treści, analizy danych i wsparcia procesów." },
-  { n:29, t:"Baza 500+ narzędzi AI", d:"Znajomość i aktywne stosowanie ponad 100 narzędzi AI z szeroką orientacją w 500+ dostępnych." },
-  { n:30, t:"6 wersji CRM od zera w 3 miesiące", d:"Zaprojektowanie i przetestowanie 5 prototypów CRM aż do finalnego rozwiązania gotowego do wdrożenia." },
+/* ===================== DATA ===================== */
+const SKILLS = [
+  {n:1, t:"Projektowanie i optymalizacja procesów sprzedażowych", d:"Mapowanie, analiza i przebudowa procesów w celu skrócenia czasu cyklu i zwiększenia konwersji.", cat:"procesy"},
+  {n:2, t:"Budowa i skalowanie lejków sprzedażowych", d:"Projektowanie lejków od etapu pozyskania leada do zamknięcia sprzedaży, z automatyzacją kluczowych etapów.", cat:"sprzedaz"},
+  {n:3, t:"Sprzedaż bezpośrednia, telefoniczna i online", d:"Prowadzenie sprzedaży w trzech modelach: terenowym, telefonicznym i zdalnym z dostosowaniem komunikatu do kanału.", cat:"sprzedaz"},
+  {n:4, t:"Prowadzenie procesu sprzedaży end-to-end", d:"Obsługa klienta od pierwszego kontaktu, przez ofertowanie i negocjacje, aż po podpisanie umowy.", cat:"sprzedaz"},
+  {n:5, t:"Negocjacje i domykanie sprzedaży", d:"Techniki negocjacyjne, zarządzanie obiekcjami i skuteczne zamykanie procesu sprzedaży bez presji.", cat:"sprzedaz"},
+  {n:6, t:"Pozyskiwanie klientów B2B i B2C", d:"Budowanie pipeline'u przez outreach online, LinkedIn, telefon oraz kontakt bezpośredni.", cat:"sprzedaz"},
+  {n:7, t:"Analiza rynku i konkurencji", d:"Badanie otoczenia konkurencyjnego, trendów rynkowych i pozycji własnej oferty względem alternatyw.", cat:"dane"},
+  {n:8, t:"Identyfikacja luk produktowych", d:"Wykrywanie niezaspokojonych potrzeb klientów i obszarów, gdzie rynek nie dostarcza skutecznych rozwiązań.", cat:"procesy"},
+  {n:9, t:"Tworzenie ofert opartych na realnym popycie", d:"Konstruowanie propozycji wartości na podstawie rzeczywistych potrzeb klientów, nie założeń wewnętrznych.", cat:"sprzedaz"},
+  {n:10, t:"Koordynacja procesu go-to-market", d:"Planowanie i wdrażanie strategii wprowadzenia produktu — od pozycjonowania po pierwsze sprzedaże.", cat:"procesy"},
+  {n:11, t:"Tworzenie i rozwój produktów (FMCG / SaaS / usługi)", d:"Projektowanie produktów w trzech kategoriach: towary FMCG, oprogramowanie SaaS i usługi profesjonalne.", cat:"procesy"},
+  {n:12, t:"Tworzenie strategii komunikacji i contentu sprzedażowego", d:"Budowanie spójnej narracji marki i treści aktywnie wspierających sprzedaż na każdym etapie lejka.", cat:"komunikacja"},
+  {n:13, t:"Upraszczanie komunikacji i eliminowanie błędów operacyjnych", d:"Redukcja nieporozumień przez uproszczenie przekazów, standaryzację komunikatów i eliminację szumu.", cat:"komunikacja"},
+  {n:14, t:"Prowadzenie szkoleń i warsztatów", d:"Projektowanie i realizacja szkoleń grupowych — miękkich (komunikacja) i twardych (sprzedaż, kryzys).", cat:"leadership"},
+  {n:15, t:"Autoprezentacja i wystąpienia publiczne", d:"Budowanie pewności i skuteczności w wystąpieniach przed grupą — od struktury po zarządzanie stresem.", cat:"komunikacja"},
+  {n:16, t:"Praca z kamerą i mikrofonem", d:"Swobodne i profesjonalne prowadzenie się przed kamerą i mikrofonem — w studio, na żywo i online.", cat:"komunikacja"},
+  {n:17, t:"Jasna i efektywna komunikacja w zespołach", d:"Wdrażanie standardów komunikacji, które skracają czas decyzji i eliminują błędy z niejasnych przekazów.", cat:"komunikacja"},
+  {n:18, t:"Budowa i rozwój zespołów sprzedażowych", d:"Tworzenie zespołów handlowych od podstaw — rekrutacja, onboarding, struktury prowizyjne.", cat:"leadership"},
+  {n:19, t:"Rekrutacja, szkolenie i wdrażanie handlowców", d:"Cały proces wprowadzania nowych sprzedawców: selekcja, szkolenie produktowe, wdrożenie i monitoring.", cat:"leadership"},
+  {n:20, t:"Coaching 1:1 w warunkach presji", d:"Indywidualna praca z handlowcami nad wynikami, postawą i skutecznością — szczególnie w trudnych warunkach.", cat:"leadership"},
+  {n:21, t:"Zarządzanie sytuacjami kryzysowymi", d:"Prowadzenie zespołów i procesów w warunkach nagłych zmian, konfliktów lub zagrożeń operacyjnych.", cat:"leadership"},
+  {n:22, t:"Budowanie struktur i standardów pracy zespołów", d:"Tworzenie powtarzalnych schematów działania niezależnych od konkretnej osoby.", cat:"leadership"},
+  {n:23, t:"Szkolenia kryzysowe — 150 uczestników", d:"Realizacja szkolenia z zarządzania sytuacjami kryzysowymi dla dużej grupy — planowanie, prowadzenie, ewaluacja.", cat:"leadership"},
+  {n:24, t:"Warsztaty komunikacja i autoprezentacja 100+", d:"Prowadzenie warsztatów kompetencji komunikacyjnych i prezentacyjnych w grupach powyżej 100 osób.", cat:"komunikacja"},
+  {n:25, t:"Budowa systemów CRM (no-code, AI)", d:"Projektowanie i wdrażanie systemów CRM bez programowania — z wykorzystaniem narzędzi no-code i AI.", cat:"ai"},
+  {n:26, t:"Automatyzacja procesów sprzedażowych i operacyjnych", d:"Eliminowanie ręcznych czynności przez automatyczne przepływy pracy w sprzedaży i operacjach.", cat:"ai"},
+  {n:27, t:"Projektowanie narzędzi zwiększających efektywność", d:"Tworzenie dedykowanych rozwiązań szybszych i prostszych niż dostępne na rynku standardy.", cat:"ai"},
+  {n:28, t:"Wykorzystanie AI w sprzedaży, marketingu i operacjach", d:"Praktyczne wdrażanie narzędzi AI do generowania treści, analizy danych i wsparcia procesów.", cat:"ai"},
+  {n:29, t:"Baza 500+ narzędzi AI", d:"Znajomość i aktywne stosowanie ponad 100 narzędzi AI w codziennej pracy — orientacja w 500+ dostępnych.", cat:"ai"},
+  {n:30, t:"6 wersji CRM od zera w 3 miesiące", d:"Zaprojektowanie i przetestowanie 5 prototypów CRM aż do stworzenia finalnego rozwiązania.", cat:"ai"},
+  {n:31, t:"Odzysk 2–3 godzin dziennie przez automatyzację", d:"Pomiar i eliminacja strat czasowych przez automatyzację raportowania, follow-upów i zadań admin.", cat:"ai"},
+  {n:32, t:"Wdrożenie CRM w modelu subskrypcyjnym", d:"Udostępnienie własnego CRM innym agentom w modelu abonamentowym — od produktu wewn. do rynkowego.", cat:"ai"},
+  {n:33, t:"Analiza danych i decyzje biznesowe", d:"Interpretowanie danych operacyjnych i sprzedażowych dla szybkich, uzasadnionych decyzji biznesowych.", cat:"dane"},
+  {n:34, t:"Interpretacja danych sprzedażowych i zachowań", d:"Czytanie wzorców zakupowych, sygnałów zainteresowania i danych konwersji w celu optymalizacji.", cat:"dane"},
+  {n:35, t:"Identyfikacja wąskich gardeł i optymalizacja", d:"Diagnozowanie miejsc, gdzie proces zwalnia lub generuje błędy — i wdrażanie konkretnych usprawnień.", cat:"procesy"},
+  {n:36, t:"Strategiczne i analityczne myślenie", d:"Patrzenie na problemy z perspektywy systemu — znajdowanie rozwiązań działających długoterminowo.", cat:"dane"},
+  {n:37, t:"Ukierunkowana kreatywność i myślenie nieszablonowe", d:"Generowanie niestandardowych rozwiązań tam, gdzie standardowe podejście nie przynosi rezultatu.", cat:"procesy"},
+  {n:38, t:"Szybka adaptacja do nowych warunków", d:"Sprawne przystosowywanie się do zmian w środowisku, produktach, zespołach i narzędziach.", cat:"procesy"},
+  {n:39, t:"Języki: Angielski B2+, Hiszpański A2, Niemiecki A2", d:"Swobodna praca w angielskim (sprzedaż, negocjacje) oraz podstawowa komunikacja w hiszp. i niem.", cat:"komunikacja"},
+  {n:40, t:"Standardy: ISO, HACCP", d:"Znajomość systemów zarządzania jakością i bezpieczeństwem żywności — stosowana przy wdrożeniach FMCG.", cat:"procesy"},
+  {n:41, t:"Narzędzia: Figma, Google Workspace, Canva", d:"Sprawna obsługa narzędzi projektowych, biurowych i CRM w codziennej pracy operacyjnej.", cat:"ai"},
+  {n:42, t:"Kaizen operacyjny", d:"Ciągłe doskonalenie każdego elementu procesu — testowanie, odrzucanie, upraszczanie i poprawianie.", cat:"procesy"},
+  {n:43, t:"Tworzenie wartości dla stakeholderów", d:"Projektowanie rozwiązań opłacalnych dla biznesu i przynoszących korzyść klientom i zespołowi.", cat:"procesy"},
+  {n:44, t:"Integracja systemów i API", d:"Łączenie narzędzi no-code, automatyzacja wymiany danych między platformami — bez pisania kodu.", cat:"ai"},
+  {n:45, t:"Skalowanie i growth hacking", d:"Szybkie testowanie kanałów akwizycji, optymalizacja CAC, identyfikacja WoW — od MVP do skali.", cat:"sprzedaz"},
+  {n:46, t:"Customer success i retention", d:"Strategie utrzymania klientów, onboarding, customer education — zwiększanie LTV i advocacy.", cat:"sprzedaz"},
+  {n:47, t:"Segmentacja rynku i targetowanie", d:"Podział bazy na segmenty, tworzenie buyer personas, personalizacja komunikacji dla każdej grupy.", cat:"dane"},
+  {n:48, t:"B2B vs B2C — obie strony rynku", d:"Doświadczenie w sprzedaży do firm (długie cykle, decydenci) i do konsumentów (szybka decyzja).", cat:"sprzedaz"},
+  {n:49, t:"Pressure testing i crisis management", d:"Przygotowywanie zespołów na ekstremalne warunki, testowanie odporności procesów.", cat:"leadership"},
+  {n:50, t:"Mentoring liderów i transfer know-how", d:"Przenoszenie wiedzy na następne pokolenie, budowanie autonomii, zmniejszanie dependencji od jednej osoby.", cat:"leadership"},
+  {n:51, t:"Ekspansja międzynarodowa", d:"Adaptacja modelu biznesu do nowych rynków, lokalizacja procesów, budowanie zespołów cross-border.", cat:"sprzedaz"},
 ];
 
-const marqueeSkills1 = [
-  "Sprzedaż end-to-end", "Budowa CRM", "Automatyzacja AI", "Lead Generation", "Negocjacje",
-  "Go-to-Market", "No-code", "Coaching sprzedażowy", "Analiza rynku", "Skalowanie procesów",
-  "B2B / B2C", "Lejki sprzedażowe", "Warsztaty & Szkolenia", "Growth Hacking", "Customer Success"
-];
-const marqueeSkills2 = [
-  "Zarządzanie kryzysowe", "LinkedIn Outreach", "Segmentacja rynku", "Mentoring liderów",
-  "FMCG / SaaS", "Kaizen operacyjny", "Integracja API", "Ekspansja międzynarodowa",
-  "Retention", "ISO / HACCP", "Figma", "Google Workspace", "Pressure Testing", "Transfer know-how"
-];
+const MQ1 = ["Sprzedaż end-to-end","Budowa CRM","Automatyzacja AI","Lead Generation","Negocjacje","Go-to-Market","No-code","Coaching sprzedażowy","Analiza rynku","Skalowanie procesów","B2B / B2C","Lejki sprzedażowe","Warsztaty & Szkolenia","Growth Hacking","Customer Success","LinkedIn Outreach","Kaizen operacyjny"];
+const MQ2 = ["Zarządzanie kryzysowe","Segmentacja rynku","Mentoring liderów","FMCG / SaaS","Integracja API","Ekspansja międzynarodowa","Retention","ISO / HACCP","Figma & Canva","Pressure Testing","Transfer know-how","D2D Sprzedaż","Wystąpienia publiczne","CRM abonamentowy","500+ narzędzi AI"];
 
-const timeline = [
-  {
-    dur:"2 lata", period:"maj 2024 – obecnie",
-    company:"ALLIANZ POLSKA", role:"Agent Ubezpieczeniowy",
-    items:[
-      "Sprzedaż end-to-end w modelu 100% zdalnym (LinkedIn, Facebook)",
-      "Budowa marki „Ubezpieczone Ryzyko Zawodowe" (6 500+ obserwujących)",
-      "Własne narzędzie CRM oparte na no-code i AI",
-      "Odzysk 2–3 godzin dziennie przez automatyzację",
-      "Wdrożenie CRM u innych agentów w modelu abonamentowym"
-    ],
-    badge:"🏆 Debiut Roku 2024 — Najmłodszy wyróżniony agent w historii Allianz"
-  },
-  {
-    dur:"7 lat 8 msc", period:"wrzesień 2018 – obecnie",
-    company:"WŁASNA DZIAŁALNOŚĆ", role:"Spekulant giełdowy, inwestor i analityk rynkowy",
-    items:[
-      "Niezależne inwestowanie na rynkach finansowych",
-      "Analiza trendów, zarządzanie portfelem akcji i inwestycji alternatywnych"
-    ]
-  },
-  {
-    dur:"4 msc", period:"listopad 2023 – luty 2024",
-    company:"SISTEMO ENERGY", role:"Dyrektor Sprzedaży",
-    items:[
-      "Zarządzanie zespołem sprzedażowym",
-      "Budowanie strategii sprzedażowej",
-      "Negocjacje kontraktów B2B w branży energetycznej"
-    ]
-  },
-  {
-    dur:"9 msc", period:"czerwiec 2023 – luty 2024",
-    company:"SUPREME ENERGY", role:"Manager Zespołu Handlowców",
-    items:[
-      "Budowa i rozwój zespołu sprzedaży D2D (rekrutacja, szkolenia, wdrożenie)",
-      "Standaryzacja procesu sprzedaży i komunikacji",
-      "Coaching 1:1 w realnych warunkach sprzedażowych",
-      "Autorski skrypt sprzedażowy zwiększający skuteczność zespołu"
-    ]
-  },
-  {
-    dur:"5 msc", period:"luty 2023 – czerwiec 2023",
-    company:"NEPTUN ENERGY", role:"Przedstawiciel Handlowy",
-    items:[
-      "Sprzedaż D2D (B2C/B2B) — pełny proces: pozyskanie, prezentacja, domknięcie",
-      "Zarządzanie dokumentacją i procesem w CRM"
-    ],
-    badge:"🏅 Najwyższy wynik sprzedażowy — nagroda „Dzika miesiąca""
-  },
-  {
-    dur:"7 msc", period:"sierpień 2022 – luty 2023",
-    company:"CATERINGS", role:"Sales Manager",
-    items:[
-      "Sprzedaż i wdrożenia systemu SaaS (CRM) dla cateringów dietetycznych",
-      "Mapowanie procesów klientów i projektowanie rozwiązań",
-      "Połączenie sprzedaży, produktu i wdrożeń w jeden spójny proces"
-    ]
-  },
-  {
-    dur:"1 rok 10 msc", period:"listopad 2020 – lipiec 2022",
-    company:"SFD", role:"Specjalista ds. Wdrażania Nowych Produktów",
-    items:[
-      "Analiza globalnego rynku i identyfikacja luk produktowych",
-      "Wprowadzenie 30+ produktów (NutLove, FitKing, AllDeynn, SFD, AllNutrition)",
-      "Koordynacja procesu go-to-market (R&D, produkcja, marketing, sprzedaż)",
-      "Budowa bazy 15 000+ produktów do adaptacji na rynek polski"
-    ]
-  },
+const TIMELINE = [
+  {dur:"2 lata",per:"maj 2024 – obecnie",co:"ALLIANZ POLSKA",r:"Agent Ubezpieczeniowy",items:["Sprzedaż end-to-end w modelu 100% zdalnym (LinkedIn, Facebook)","Budowa marki „Ubezpieczone Ryzyko Zawodowe" (6 500+ obserwujących)","Własne narzędzie CRM oparte na no-code i AI — wdrożone u innych agentów","Odzysk 2–3 godzin dziennie przez automatyzację raportowania i follow-upów"],badge:"🏆 Debiut Roku 2024 — najmłodszy wyróżniony agent w historii Allianz"},
+  {dur:"7 lat 8 msc",per:"wrzesień 2018 – obecnie",co:"WŁASNA DZIAŁALNOŚĆ",r:"Spekulant giełdowy, Inwestor i Analityk rynkowy",items:["Niezależne inwestowanie na rynkach finansowych","Analiza trendów makro, zarządzanie portfelem akcji i inwestycji alternatywnych"]},
+  {dur:"4 msc",per:"listopad 2023 – luty 2024",co:"SISTEMO ENERGY",r:"Dyrektor Sprzedaży",items:["Zarządzanie zespołem sprzedażowym i budowanie strategii sprzedażowej","Negocjacje kontraktów B2B w branży energetycznej"]},
+  {dur:"9 msc",per:"czerwiec 2023 – luty 2024",co:"SUPREME ENERGY",r:"Manager Zespołu Handlowców",items:["Budowa i rozwój zespołu sprzedaży D2D (rekrutacja, szkolenia, wdrożenie)","Coaching 1:1 w realnych warunkach sprzedażowych — przejmowanie rozmów i domykanie","Autorski skrypt sprzedażowy zwiększający skuteczność zespołu","Efekt: niższa rotacja i większa stabilność wyników"]},
+  {dur:"5 msc",per:"luty 2023 – czerwiec 2023",co:"NEPTUN ENERGY",r:"Przedstawiciel Handlowy",items:["Sprzedaż D2D (B2C/B2B) — pełny proces: pozyskanie, prezentacja, domknięcie","Zarządzanie dokumentacją i procesem w CRM"],badge:"🏅 Nagroda Dzika miesiąca — najwyższy wynik sprzedażowy"},
+  {dur:"7 msc",per:"sierpień 2022 – luty 2023",co:"CATERINGS",r:"Sales Manager",items:["Sprzedaż i wdrożenia systemu SaaS (CRM) dla cateringów dietetycznych","Mapowanie procesów klientów, projektowanie landing page'y i konfiguratorów","Połączenie sprzedaży, produktu i wdrożeń w jeden spójny proces"]},
+  {dur:"4 msc",per:"maj 2022 – sierpień 2022",co:"COMMON CAPITAL",r:"Founding Member — Investment Club",items:["Analiza rynków i identyfikacja okazji inwestycyjnych","Tworzenie i prezentacja propozycji inwestycyjnych","Prowadzenie szkoleń z zakresu kontraktów CFD"]},
+  {dur:"3 msc",per:"maj 2022 – lipiec 2022",co:"PAPFU",r:"Przedstawiciel Handlowy",items:["Sprzedaż usług dotacyjnych z programu ARiMR","116 przeprocesowanych umów w 2 miesiącu — jeden z najwyższych wyników w org."]},
+  {dur:"1 rok 10 msc",per:"listopad 2020 – lipiec 2022",co:"SFD",r:"Specjalista ds. Wdrażania Nowych Produktów",items:["Analiza globalnego rynku i identyfikacja luk produktowych","Wprowadzenie 30+ produktów (NutLove, FitKing, AllDeynn, SFD, AllNutrition)","Koordynacja go-to-market: R&D → produkcja → marketing → sprzedaż","Budowa bazy 15 000+ produktów do adaptacji na rynek polski"]},
+  {dur:"3 lata 6 msc",per:"kwiecień 2017 – wrzesień 2020",co:"TEATR IM. JANA KOCHANOWSKIEGO",r:"Lider Wolontariuszy",items:["Liderowanie zespołem 20+ wolontariuszy","Pomoc w organizacji wydarzeń i projektów kulturalnych"]},
 ];
 
-const recommendations = [
-  { q:"Zdecydowanie polecam współpracę z Panem Michałem. Szukałem kompleksowej ochrony na wypadek choroby i NNW — Pan Michał wykazał się ogromnym profesjonalizmem i elastycznością, przygotowując ofertę, która nie miała sobie równych na rynku.", name:"Michal Domnik", title:"HSE Offshore Medic" },
-  { q:"Wyróżniający się profesjonalizm i indywidualne podejście. Pełna transparentność proponowanych możliwości. Lepiej nie można trafić.", name:"Maciej Sekieta", title:"Technik turbin wiatrowych" },
-  { q:"Pan Michał to świetny agent ubezpieczeniowy. Wzorowo przygotowany do konsultacji. Potrafi w prosty i zrozumiały sposób wytłumaczyć, z którego ubezpieczenia warto skorzystać. Indywidualne podejście do klienta.", name:"Kamil Polechonski", title:"Offshore Project QHSE-S Engineer" },
-  { q:"Polecam współpracę z Michałem — świetny kontakt, konkretne podejście. Pomógł mi dobrać odpowiednie ubezpieczenie dla pracy alpinisty przemysłowego. Pełen profesjonalizm, ale na luzie.", name:"Agata Szymonik", title:"Alpinista przemysłowy IRATA" },
-  { q:"Michał wyróżnia się nie tylko ogromną wiedzą branżową, ale też indywidualnym podejściem do klienta. Zawsze dostępny, zaangażowany i pełen inicjatywy — widać, że naprawdę zależy mu na dobru klienta.", name:"Tomasz Babkin", title:"IMCA Diver / IRATA L3" },
-  { q:"Michał to prawdziwy specjalista w temacie ubezpieczeń w branży podwyższonego ryzyka. Z Michałem kontakt to czysta przyjemność — działa szybko i skutecznie. Zawsze można na niego liczyć.", name:"Stanisław Zgliński", title:"IMCA Air Diver / IRATA L3" },
-  { q:"Fachowe doradztwo, indywidualne podejście i szybka obsługa sprawiły, że cały proces wyboru polisy przebiegł sprawnie i bezproblemowo. Z pełnym przekonaniem polecam współpracę!", name:"Radosław Frąckowiak", title:"Technik Turbin Wiatrowych" },
-  { q:"Bardzo fajne podejście do klienta, wysłuchanie potrzeb na wysokim poziomie. Z pewnością polecam.", name:"Rafał Jesionowski", title:"Wind turbine technician" },
-  { q:"Michał pomógł mi dobrać odpowiednie ubezpieczenie — nie naciska, wszystko wytłumaczył. Dużo czasu spędzam na projektach w Niemczech, ważne było znalezienie kogoś z solidnym podejściem. Polecam!", name:"Robert Górski", title:"Monter telekomunikacyjny" },
+const RECS = [
+  {q:"Zdecydowanie polecam współpracę z Panem Michałem. Szukałem kompleksowej ochrony na wypadek choroby i NNW — Pan Michał wykazał się ogromnym profesjonalizmem, przygotowując ofertę, która nie miała sobie równych na rynku. Indywidualne podejście na najwyższym poziomie.",nm:"Michal Domnik",tl:"HSE Offshore Medic"},
+  {q:"Wyróżniający się profesjonalizm i indywidualne podejście. Pełna transparentność proponowanych możliwości. Lepiej nie można trafić.",nm:"Maciej Sekieta",tl:"Technik turbin wiatrowych"},
+  {q:"Dobry jest, wie co robi.",nm:"Gerard Klimek",tl:"Monter turbin wiatrowych"},
+  {q:"Pan Michał to świetny agent ubezpieczeniowy. Wzorowo przygotowany do konsultacji. Potrafi w prosty sposób wytłumaczyć, z którego ubezpieczenia warto skorzystać. Poświęca dużo czasu na rozmowy, bez pośpiechu czy nacisku.",nm:"Kamil Polechonski",tl:"Offshore Project QHSE-S Engineer"},
+  {q:"Polecam współpracę z Michałem — świetny kontakt, konkretne podejście. Pomógł mi dobrać ubezpieczenie dla pracy alpinisty przemysłowego. Pełen profesjonalizm, ale na luzie — dokładnie tak jak powinno być.",nm:"Agata Szymonik",tl:"Alpinista przemysłowy IRATA"},
+  {q:"Michał wyróżnia się nie tylko ogromną wiedzą branżową, ale też indywidualnym podejściem. Zawsze dostępny, zaangażowany i pełen inicjatywy — widać, że naprawdę zależy mu na dobru klienta.",nm:"Tomasz Babkin",tl:"IMCA Diver / IRATA L3"},
+  {q:"Michał to prawdziwy specjalista w temacie ubezpieczeń branży podwyższonego ryzyka. Działa szybko i skutecznie. Zawsze można na niego liczyć, nawet o każdej porze dnia i nocy. Z Michałem kontakt to czysta przyjemność.",nm:"Stanisław Zgliński",tl:"IMCA Air Diver / IRATA L3"},
+  {q:"Fachowe doradztwo, indywidualne podejście i szybka obsługa sprawiły, że cały proces wyboru polisy przebiegł sprawnie i bezproblemowo. Z pełnym przekonaniem polecam!",nm:"Radosław Frąckowiak",tl:"Technik Turbin Wiatrowych"},
+  {q:"Polecam współpracę w 100%. Wysoki standard usług, szczegółowa rozmowa i doradztwo na każdym etapie.",nm:"Wojciech Ruczyński",tl:"NDT & Rope Access"},
+  {q:"Michał pomógł mi dobrać odpowiednie ubezpieczenie. Nie naciska, wszystko wytłumaczył. Ważne było dla mnie wsparcie przy projektach w Niemczech — i tu Michał sprawdził się idealnie.",nm:"Robert Górski",tl:"Monter telekomunikacyjny"},
+  {q:"Szczerze polecam Michała. Rzeczowy i uczciwy człowiek. Potrafi doradzić i dopasować ubezpieczenie do potrzeb.",nm:"Wojciech Ratajczak",tl:"Wind Turbine Technician"},
+  {q:"Profesjonalne doradztwo i dobór ubezpieczenia pod potrzeby klienta. Polecam.",nm:"Hubert Brzeziński",tl:"Wind Turbine Technician"},
 ];
 
-// INIT
-window.addEventListener('DOMContentLoaded', () => {
-  buildMarquees();
-  buildSkillsGrid();
-  buildTimeline();
-  buildRecommendations();
-  initLoader();
-});
+/* ===================== BUILD ===================== */
+function buildAll() {
+  // marquees
+  const d1 = [...MQ1,...MQ1].map(s=>`<div class="mq-i"><span><span class="mq-dot">◆</span>${s}</span></div>`).join('');
+  const d2 = [...MQ2,...MQ2].map(s=>`<div class="mq-i"><span><span class="mq-dot">◆</span>${s}</span></div>`).join('');
+  document.getElementById('mq1').innerHTML = d1;
+  document.getElementById('mq2').innerHTML = d2;
 
-function buildMarquees() {
-  const t1 = document.getElementById('marquee1');
-  const t2 = document.getElementById('marquee2');
-  const items1 = [...marqueeSkills1, ...marqueeSkills1];
-  const items2 = [...marqueeSkills2, ...marqueeSkills2];
-  t1.innerHTML = items1.map(s => `<div class="marquee-item"><span class="num">◆</span>${s}</div>`).join('');
-  t2.innerHTML = items2.map(s => `<div class="marquee-item"><span class="num">◆</span>${s}</div>`).join('');
-}
+  // skills grid
+  renderSkills('all');
 
-function buildSkillsGrid() {
-  const grid = document.getElementById('skills-grid');
-  grid.innerHTML = skills.map(s => `
-    <div class="skill-card">
-      <div class="skill-num">${String(s.n).padStart(2,'0')}</div>
-      <div class="skill-title">${s.t}</div>
-      <div class="skill-desc">${s.d}</div>
-    </div>
-  `).join('');
-}
+  // filters
+  document.getElementById('k-filters').addEventListener('click', e => {
+    const btn = e.target.closest('.k-f');
+    if(!btn) return;
+    document.querySelectorAll('.k-f').forEach(b=>b.classList.remove('on'));
+    btn.classList.add('on');
+    renderSkills(btn.dataset.cat);
+  });
 
-function buildTimeline() {
-  const tl = document.getElementById('timeline');
-  tl.innerHTML = timeline.map(t => `
-    <div class="timeline-item">
-      <div class="timeline-date">
-        <span class="timeline-duration">${t.dur}</span>
-        <span class="timeline-period">${t.period}</span>
+  // timeline
+  document.getElementById('tl').innerHTML = TIMELINE.map(t=>`
+    <div class="tl-i">
+      <div class="tl-meta"><span class="tl-dur">${t.dur}</span><span class="tl-per">${t.per}</span></div>
+      <div class="tl-dot"></div>
+      <div class="tl-body">
+        <div class="tl-co">${t.co}</div>
+        <div class="tl-r">${t.r}</div>
+        <ul class="tl-list">${t.items.map(i=>`<li>${i}</li>`).join('')}</ul>
+        ${t.badge?`<div class="tl-badge">${t.badge}</div>`:''}
       </div>
-      <div class="timeline-content">
-        <div class="timeline-company">${t.company}</div>
-        <div class="timeline-role">${t.role}</div>
-        <ul class="timeline-list">${t.items.map(i=>`<li>${i}</li>`).join('')}</ul>
-        ${t.badge ? `<div class="timeline-badge">${t.badge}</div>` : ''}
-      </div>
-    </div>
-  `).join('');
-}
+    </div>`).join('');
 
-function buildRecommendations() {
-  const track = document.getElementById('rec-track');
-  const doubled = [...recommendations, ...recommendations];
-  track.innerHTML = doubled.map(r => `
+  // recommendations
+  const rd = [...RECS,...RECS].map(r=>`
     <div class="rec-card">
+      <div class="rec-li">LinkedIn</div>
       <div class="rec-stars">★★★★★</div>
-      <p class="rec-quote">"${r.q}"</p>
-      <div class="rec-author">
-        <div class="rec-avatar">${r.name.charAt(0)}</div>
-        <div>
-          <div class="rec-name">${r.name}</div>
-          <div class="rec-title">${r.title}</div>
-        </div>
+      <p class="rec-q">"${r.q}"</p>
+      <div class="rec-auth">
+        <div class="rec-av">${r.nm.charAt(0)}</div>
+        <div><div class="rec-nm">${r.nm}</div><div class="rec-tl">${r.tl}</div></div>
       </div>
-    </div>
-  `).join('');
+    </div>`).join('');
+  document.getElementById('rec-mq').innerHTML = rd;
 }
 
-function initLoader() {
-  const bar = document.getElementById('loader-bar');
-  const pct = document.getElementById('loader-pct');
-  const loader = document.getElementById('loader');
-  let p = 0;
-  const interval = setInterval(() => {
-    p += Math.random() * 15;
-    if (p >= 100) { p = 100; clearInterval(interval); }
-    bar.style.width = p + '%';
-    pct.textContent = Math.round(p) + '%';
-    if (p === 100) {
-      setTimeout(() => {
-        gsap.to(loader, { opacity:0, duration:.6, ease:'power2.in', onComplete:() => {
-          loader.style.display = 'none';
-          initAnimations();
-        }});
-      }, 300);
-    }
-  }, 80);
-}
-
-function initAnimations() {
-  gsap.registerPlugin(ScrollTrigger);
-  initCursor();
-  initThree();
-  initHero();
-  initScrollAnimations();
-  initCounters();
-  initNav();
-}
-
-function initCursor() {
-  const cur = document.getElementById('cursor');
-  const fol = document.getElementById('cursor-follower');
-  let mx=0, my=0, fx=0, fy=0;
-  document.addEventListener('mousemove', e => { mx=e.clientX; my=e.clientY; });
-  function loop() {
-    cur.style.left = mx+'px'; cur.style.top = my+'px';
-    fx += (mx-fx)*.12; fy += (my-fy)*.12;
-    fol.style.left = fx+'px'; fol.style.top = fy+'px';
-    requestAnimationFrame(loop);
-  }
-  loop();
-  document.querySelectorAll('a, button, .skill-card, .rec-card, .collab-card').forEach(el => {
-    el.addEventListener('mouseenter', () => {
-      cur.style.width='20px'; cur.style.height='20px';
-      fol.style.width='60px'; fol.style.height='60px';
-      fol.style.borderColor='rgba(201,169,110,.5)';
+function renderSkills(cat) {
+  const filtered = cat==='all' ? SKILLS : SKILLS.filter(s=>s.cat===cat);
+  document.getElementById('sk-grid').innerHTML = filtered.map(s=>`
+    <div class="sk-card" data-cat="${s.cat}">
+      <div class="sk-n">${String(s.n).padStart(2,'0')}</div>
+      <div class="sk-t" data-scramble="${s.t}">${s.t}</div>
+      <div class="sk-d">${s.d}</div>
+    </div>`).join('');
+  // animate in
+  requestAnimationFrame(()=>{
+    document.querySelectorAll('.sk-card').forEach((el,i)=>{
+      setTimeout(()=>el.classList.add('vis'), i*30);
     });
-    el.addEventListener('mouseleave', () => {
-      cur.style.width='12px'; cur.style.height='12px';
-      fol.style.width='40px'; fol.style.height='40px';
-      fol.style.borderColor='rgba(255,255,255,.3)';
-    });
+  });
+  initScramble();
+}
+
+/* ===================== SCRAMBLE ===================== */
+const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#@!$%';
+function scramble(el) {
+  const original = el.dataset.scramble || el.textContent;
+  let iter = 0;
+  const max = original.length;
+  const id = setInterval(()=>{
+    el.textContent = original.split('').map((c,i)=>{
+      if(i < iter) return c;
+      if(c===' ') return ' ';
+      return CHARS[Math.floor(Math.random()*CHARS.length)];
+    }).join('');
+    iter += .5;
+    if(iter > max) clearInterval(id);
+  }, 30);
+}
+function initScramble() {
+  document.querySelectorAll('.sk-t').forEach(el=>{
+    el.addEventListener('mouseenter', ()=>scramble(el));
   });
 }
 
+/* ===================== LOADER ===================== */
+function initLoader() {
+  const bar = document.getElementById('ld-b');
+  const pct = document.getElementById('ld-p');
+  const loader = document.getElementById('loader');
+  let p=0;
+  const id = setInterval(()=>{
+    p += Math.random()*18 + 2;
+    if(p>=100){p=100;clearInterval(id);}
+    bar.style.width=p+'%';
+    pct.textContent=Math.round(p)+'%';
+    if(p===100){
+      setTimeout(()=>{
+        loader.style.transition='opacity .7s';
+        loader.style.opacity='0';
+        setTimeout(()=>{loader.style.display='none';initMain();},700);
+      },200);
+    }
+  },60);
+}
+
+/* ===================== CURSOR ===================== */
+function initCursor() {
+  const cur = document.getElementById('cur');
+  const ring = document.getElementById('cur-ring');
+  let mx=0,my=0,rx=0,ry=0;
+  document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;});
+  (function loop(){
+    cur.style.left=mx+'px';cur.style.top=my+'px';
+    rx+=(mx-rx)*.1;ry+=(my-ry)*.1;
+    ring.style.left=rx+'px';ring.style.top=ry+'px';
+    requestAnimationFrame(loop);
+  })();
+  document.querySelectorAll('a,button,.sk-card,.rec-card,.col-c,.pillar,.st,.tl-i').forEach(el=>{
+    el.addEventListener('mouseenter',()=>{cur.classList.add('big');ring.classList.add('big');});
+    el.addEventListener('mouseleave',()=>{cur.classList.remove('big');ring.classList.remove('big');});
+  });
+}
+
+/* ===================== THREE.JS ===================== */
 function initThree() {
   const canvas = document.getElementById('bg-canvas');
-  const renderer = new THREE.WebGLRenderer({ canvas, alpha:true, antialias:true });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
-  renderer.setSize(window.innerWidth, window.innerHeight);
+  const W=window.innerWidth, H=window.innerHeight;
+  const renderer = new THREE.WebGLRenderer({canvas,alpha:true,antialias:true});
+  renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+  renderer.setSize(W,H);
 
   const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
-  camera.position.z = 30;
+  const cam = new THREE.PerspectiveCamera(60,W/H,.1,1000);
+  cam.position.z=28;
 
   // Particles
-  const geo = new THREE.BufferGeometry();
-  const count = 2000;
-  const pos = new Float32Array(count*3);
-  const sizes = new Float32Array(count);
-  for(let i=0;i<count;i++){
-    pos[i*3]   = (Math.random()-0.5)*100;
-    pos[i*3+1] = (Math.random()-0.5)*100;
-    pos[i*3+2] = (Math.random()-0.5)*50;
-    sizes[i] = Math.random()*2+0.5;
+  const N=3000;
+  const pos=new Float32Array(N*3);
+  for(let i=0;i<N;i++){
+    const r=Math.random()*80+10;
+    const theta=Math.random()*Math.PI*2;
+    const phi=Math.acos(2*Math.random()-1);
+    pos[i*3]=r*Math.sin(phi)*Math.cos(theta);
+    pos[i*3+1]=r*Math.sin(phi)*Math.sin(theta);
+    pos[i*3+2]=r*Math.cos(phi)-20;
   }
-  geo.setAttribute('position', new THREE.BufferAttribute(pos,3));
-  geo.setAttribute('size', new THREE.BufferAttribute(sizes,1));
+  const geo=new THREE.BufferGeometry();
+  geo.setAttribute('position',new THREE.BufferAttribute(pos,3));
+  const pts=new THREE.Points(geo,new THREE.PointsMaterial({
+    color:0xc8a96a,size:.06,transparent:true,opacity:.35,
+    sizeAttenuation:true,blending:THREE.AdditiveBlending
+  }));
+  scene.add(pts);
 
-  const mat = new THREE.PointsMaterial({
-    color: 0xc9a96e, size:0.08, transparent:true, opacity:0.4,
-    sizeAttenuation:true, blending: THREE.AdditiveBlending
+  // Wireframe sphere
+  const sGeo=new THREE.IcosahedronGeometry(8,1);
+  const sMat=new THREE.MeshBasicMaterial({color:0x222222,wireframe:true,transparent:true,opacity:.15});
+  const sphere=new THREE.Mesh(sGeo,sMat);
+  sphere.position.set(12,0,-10);
+  scene.add(sphere);
+
+  // Torus
+  const tGeo=new THREE.TorusGeometry(5,1.5,8,24);
+  const tMat=new THREE.MeshBasicMaterial({color:0x1a1a1a,wireframe:true,transparent:true,opacity:.12});
+  const torus=new THREE.Mesh(tGeo,tMat);
+  torus.position.set(-14,4,-15);
+  scene.add(torus);
+
+  let mx=0,my=0;
+  document.addEventListener('mousemove',e=>{
+    mx=(e.clientX/window.innerWidth-.5)*2;
+    my=(e.clientY/window.innerHeight-.5)*2;
   });
-  const particles = new THREE.Points(geo, mat);
-  scene.add(particles);
-
-  // Lines grid
-  const lineMat = new THREE.LineBasicMaterial({ color:0x222222, transparent:true, opacity:0.3 });
-  for(let i=-5;i<=5;i++){
-    const lg = new THREE.BufferGeometry().setFromPoints([
-      new THREE.Vector3(-50, i*10, -20), new THREE.Vector3(50, i*10, -20)
-    ]);
-    scene.add(new THREE.Line(lg, lineMat));
-    const lg2 = new THREE.BufferGeometry().setFromPoints([
-      new THREE.Vector3(i*10, -50, -20), new THREE.Vector3(i*10, 50, -20)
-    ]);
-    scene.add(new THREE.Line(lg2, lineMat));
-  }
-
-  let mx=0, my=0;
-  document.addEventListener('mousemove', e => {
-    mx = (e.clientX/window.innerWidth - 0.5)*2;
-    my = (e.clientY/window.innerHeight - 0.5)*2;
+  window.addEventListener('resize',()=>{
+    cam.aspect=window.innerWidth/window.innerHeight;
+    cam.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth,window.innerHeight);
   });
-
-  window.addEventListener('resize', () => {
-    camera.aspect = window.innerWidth/window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
-  });
-
   let t=0;
-  function animate() {
-    requestAnimationFrame(animate);
-    t += 0.003;
-    particles.rotation.y = t*0.1 + mx*0.05;
-    particles.rotation.x = my*0.03;
-    camera.position.x += (mx*2 - camera.position.x)*0.03;
-    camera.position.y += (-my*2 - camera.position.y)*0.03;
-    renderer.render(scene, camera);
-  }
-  animate();
+  (function loop(){
+    requestAnimationFrame(loop);
+    t+=.003;
+    pts.rotation.y=t*.08+mx*.04;
+    pts.rotation.x=my*.03;
+    sphere.rotation.y=t*.15;
+    sphere.rotation.x=t*.1;
+    torus.rotation.x=t*.12+.5;
+    torus.rotation.z=t*.08;
+    cam.position.x+=(mx*1.5-cam.position.x)*.04;
+    cam.position.y+=(-my*1.5-cam.position.y)*.04;
+    renderer.render(scene,cam);
+  })();
 }
 
-function initHero() {
-  const tl = gsap.timeline({ delay:.3 });
-  tl.to('.hero-tag', { opacity:1, y:0, duration:.8, ease:'power3.out' })
-    .to('.hero-name .word', { y:'0%', duration:1, stagger:.1, ease:'power4.out' }, '-=0.4')
-    .to('.hero-sub', { opacity:1, y:0, duration:.8, ease:'power3.out' }, '-=0.6')
-    .to('.hero-btns', { opacity:1, y:0, duration:.8, ease:'power3.out' }, '-=0.6')
-    .to('.hero-scroll-hint', { opacity:1, duration:.6 }, '-=0.4');
-}
+/* ===================== GSAP ===================== */
+function initGSAP() {
+  gsap.registerPlugin(ScrollTrigger);
 
-function initScrollAnimations() {
-  // Reveal elements
-  gsap.utils.toArray('.reveal').forEach(el => {
-    gsap.fromTo(el, { opacity:0, y:30 }, {
-      opacity:1, y:0, duration:1, ease:'power3.out',
-      scrollTrigger:{ trigger:el, start:'top 85%', toggleActions:'play none none none' }
-    });
-  });
-  gsap.utils.toArray('.reveal-left').forEach(el => {
-    gsap.fromTo(el, { opacity:0, x:-40 }, {
-      opacity:1, x:0, duration:1, ease:'power3.out',
-      scrollTrigger:{ trigger:el, start:'top 85%', toggleActions:'play none none none' }
-    });
-  });
-  gsap.utils.toArray('.reveal-right').forEach(el => {
-    gsap.fromTo(el, { opacity:0, x:40 }, {
-      opacity:1, x:0, duration:1, ease:'power3.out',
-      scrollTrigger:{ trigger:el, start:'top 85%', toggleActions:'play none none none' }
-    });
+  // Hero
+  const tl=gsap.timeline({delay:.2});
+  tl.to('.hero-tag',{opacity:1,duration:.8,ease:'power3.out'})
+    .to('.hero-h1 .w',{y:'0%',duration:1.1,stagger:.12,ease:'power4.out'},'-=.5')
+    .to('.hero-sub',{opacity:1,y:0,duration:.9,ease:'power3.out'},'-=.7')
+    .to('.hero-ctas',{opacity:1,y:0,duration:.8,ease:'power3.out'},'-=.6')
+    .to('#hero-scroll',{opacity:1,duration:.6},'-=.3');
+
+  // Scroll reveals
+  const revealConfig=(el,x=0,y=24)=>gsap.fromTo(el,{opacity:0,x,y},{
+    opacity:1,x:0,y:0,duration:.9,ease:'power3.out',
+    scrollTrigger:{trigger:el,start:'top 88%',once:true}
   });
 
-  // Pillars
-  gsap.utils.toArray('.pillar').forEach((el, i) => {
-    gsap.to(el, {
-      opacity:1, x:0, duration:.7, ease:'power3.out', delay:i*0.1,
-      scrollTrigger:{ trigger:'.about-pillars', start:'top 80%' }
-    });
-  });
-
-  // Skill cards
-  gsap.utils.toArray('.skill-card').forEach((el, i) => {
-    gsap.to(el, {
-      opacity:1, y:0, duration:.6, ease:'power3.out', delay:(i%3)*0.1,
-      scrollTrigger:{ trigger:el, start:'top 90%' }
-    });
-  });
+  document.querySelectorAll('.rv').forEach(el=>revealConfig(el));
+  document.querySelectorAll('.rl').forEach(el=>revealConfig(el,-36,0));
+  document.querySelectorAll('.rr').forEach(el=>revealConfig(el,36,0));
 
   // Timeline items
-  gsap.utils.toArray('.timeline-item').forEach((el, i) => {
-    gsap.to(el, {
-      opacity:1, x:0, duration:.7, ease:'power3.out', delay:i*0.05,
-      scrollTrigger:{ trigger:el, start:'top 85%' }
-    });
-  });
-
-  // Section transitions
-  gsap.utils.toArray('section').forEach(s => {
-    gsap.fromTo(s, { opacity:.4 }, {
-      opacity:1, duration:1,
-      scrollTrigger:{ trigger:s, start:'top 80%', end:'top 30%', scrub:true }
-    });
-  });
+  const observer=new IntersectionObserver(entries=>{
+    entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('vis');}});
+  },{threshold:.15});
+  document.querySelectorAll('.tl-i,.sk-card').forEach(el=>observer.observe(el));
 }
 
+/* ===================== COUNTERS ===================== */
 function initCounters() {
-  document.querySelectorAll('.stat-num[data-target]').forEach(el => {
-    const target = parseInt(el.dataset.target);
-    const suffix = el.querySelector('span').outerHTML;
-    ScrollTrigger.create({
-      trigger: el,
-      start: 'top 85%',
-      onEnter: () => {
-        gsap.to({ v:0 }, {
-          v: target,
-          duration: 2,
-          ease: 'power2.out',
-          onUpdate: function() { el.innerHTML = Math.round(this.targets()[0].v).toLocaleString('pl') + suffix; }
-        });
-      },
-      once: true
+  const obs=new IntersectionObserver(entries=>{
+    entries.forEach(e=>{
+      if(!e.isIntersecting) return;
+      const el=e.target;
+      const target=parseInt(el.dataset.t);
+      const suf=el.querySelector('em').outerHTML;
+      const dur=2000;
+      const step=dur/60;
+      let cur=0;
+      const inc=target/60;
+      const id=setInterval(()=>{
+        cur=Math.min(cur+inc,target);
+        el.innerHTML=Math.round(cur).toLocaleString('pl')+suf;
+        if(cur>=target)clearInterval(id);
+      },step);
+      obs.unobserve(el);
+    });
+  },{threshold:.5});
+  document.querySelectorAll('.st-n[data-t]').forEach(el=>obs.observe(el));
+}
+
+/* ===================== NAV ===================== */
+function initNav() {
+  const nav=document.getElementById('nav');
+  const ham=document.getElementById('ham');
+  const mob=document.getElementById('mob-menu');
+  window.addEventListener('scroll',()=>{
+    nav.classList.toggle('s',window.scrollY>60);
+  });
+  ham.addEventListener('click',()=>{
+    ham.classList.toggle('open');
+    mob.classList.toggle('open');
+  });
+  document.querySelectorAll('.mob-link').forEach(a=>{
+    a.addEventListener('click',()=>{ham.classList.remove('open');mob.classList.remove('open');});
+  });
+}
+
+/* ===================== MAGNETIC BUTTONS ===================== */
+function initMagnetic() {
+  document.querySelectorAll('.mag').forEach(btn=>{
+    btn.addEventListener('mousemove',e=>{
+      const rect=btn.getBoundingClientRect();
+      const cx=rect.left+rect.width/2;
+      const cy=rect.top+rect.height/2;
+      const dx=(e.clientX-cx)*.25;
+      const dy=(e.clientY-cy)*.25;
+      btn.style.transform=`translate(${dx}px,${dy}px)`;
+    });
+    btn.addEventListener('mouseleave',()=>{
+      btn.style.transition='transform .5s cubic-bezier(.77,0,.18,1)';
+      btn.style.transform='translate(0,0)';
+      setTimeout(()=>btn.style.transition='',500);
     });
   });
 }
 
-function initNav() {
-  const nav = document.getElementById('nav');
-  window.addEventListener('scroll', () => {
-    if(window.scrollY > 80) nav.classList.add('scrolled');
-    else nav.classList.remove('scrolled');
+/* ===================== PARALLAX ===================== */
+function initParallax() {
+  window.addEventListener('scroll',()=>{
+    const y=window.scrollY;
+    const bg=document.querySelector('.hero-bg-text');
+    if(bg) bg.style.transform=`translate(-50%,calc(-50% + ${y*.3}px))`;
+    const img=document.querySelector('.about-img img');
+    if(img){
+      const rect=document.querySelector('.about-img').getBoundingClientRect();
+      const rel=(window.innerHeight/2-rect.top-rect.height/2)/window.innerHeight;
+      img.style.transform=`scale(1.05) translateY(${rel*20}px)`;
+    }
   });
 }
+
+/* ===================== MAIN ===================== */
+function initMain() {
+  initCursor();
+  initThree();
+  initGSAP();
+  initCounters();
+  initNav();
+  initMagnetic();
+  initParallax();
+}
+
+window.addEventListener('DOMContentLoaded',()=>{buildAll();initLoader();});
 </script>
 </body>
 </html>
